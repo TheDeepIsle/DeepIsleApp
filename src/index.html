@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="../node_modules/livekit-client/dist/livekit-client.umd.js"></script>
+    <meta charset="UTF-8">
+    <title>Deep Isle</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #0d1f1f; color: #e0f7f4; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; }
+        #loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        #loginScreen h1 { color: #4dd9c0; margin-bottom: 24px; font-size: 28px; }
+        .card { background: #112e2e; border: 1px solid #1e4a4a; border-radius: 10px; padding: 32px; width: 360px; }
+        #loginStatus { margin-top: 14px; text-align: center; font-size: 13px; }
+        .btn { width: 100%; padding: 12px; background: #4dd9c0; border: none; border-radius: 6px; color: #0d1f1f; font-weight: bold; font-size: 15px; cursor: pointer; margin-bottom: 8px; display: block; }
+        .btn:hover { background: #3bc4ad; }
+        .btn.danger { background: #f87171; color: #fff; }
+        .btn.danger:hover { background: #ef4444; }
+        .btn.small { padding: 6px 12px; font-size: 13px; width: auto; display: inline-block; margin-bottom: 0; }
+        input { width: 100%; padding: 10px; margin-bottom: 14px; background: #0d1f1f; border: 1px solid #1e4a4a; border-radius: 6px; color: #e0f7f4; font-size: 14px; }
+        #playerScreen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 24px; }
+        .player-card { background: #112e2e; border: 1px solid #1e4a4a; border-radius: 10px; padding: 32px; width: 400px; text-align: center; }
+        .player-card h2 { color: #4dd9c0; font-size: 22px; margin-bottom: 8px; }
+        .player-card .status { font-size: 13px; color: #4dd9c0; margin-bottom: 20px; }
+        .player-card .count { font-size: 48px; font-weight: bold; color: #4dd9c0; margin-bottom: 4px; }
+        .player-card .count-label { font-size: 13px; color: #a0c4c0; margin-bottom: 24px; }
+        .player-card .user { font-size: 12px; color: #a0c4c0; margin-top: 16px; }
+        #appScreen { display: none; flex-direction: row; height: 100vh; }
+        #sidebar { width: 180px; background: #091818; border-right: 1px solid #1e4a4a; display: flex; flex-direction: column; padding: 16px 0; }
+        #sidebar .logo { color: #4dd9c0; font-size: 16px; font-weight: bold; padding: 0 16px 20px; border-bottom: 1px solid #1e4a4a; margin-bottom: 12px; }
+        #sidebar .nav-item { padding: 10px 16px; cursor: pointer; font-size: 14px; color: #a0c4c0; border-left: 3px solid transparent; }
+        #sidebar .nav-item:hover { color: #e0f7f4; background: #112e2e; }
+        #sidebar .nav-item.active { color: #4dd9c0; border-left: 3px solid #4dd9c0; background: #112e2e; }
+        #sidebar .spacer { flex: 1; }
+        #sidebar .user-info { padding: 12px 16px; font-size: 12px; color: #4dd9c0; border-top: 1px solid #1e4a4a; }
+        #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #topbar { background: #091818; border-bottom: 1px solid #1e4a4a; padding: 12px 20px; font-size: 14px; color: #4dd9c0; display: flex; align-items: center; justify-content: space-between; }
+        #content { flex: 1; padding: 24px; overflow-y: auto; }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .panel h2 { font-size: 18px; color: #4dd9c0; margin-bottom: 20px; }
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #112e2e; border: 1px solid #1e4a4a; border-radius: 8px; padding: 20px; }
+        .stat-card .label { font-size: 12px; color: #a0c4c0; margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: bold; color: #4dd9c0; }
+        .log-box { background: #091818; border: 1px solid #1e4a4a; border-radius: 8px; padding: 14px; font-size: 12px; font-family: monospace; height: 200px; overflow-y: auto; color: #a0c4c0; }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+    <h1>Deep Isle</h1>
+    <div class="card">
+        <p style="font-size:13px; color:#a0c4c0; margin-bottom:20px; text-align:center;">Select a server to continue.</p>
+        <div id="serverButtons"></div>
+        <div id="loginStatus"></div>
+    </div>
+</div>
+
+<!-- PLAYER VIEW -->
+<div id="playerScreen">
+    <div class="player-card">
+        <h2 id="playerServerName">—</h2>
+        <div class="status">● Online</div>
+        <div class="count" id="playerCount">—</div>
+        <div class="count-label">Players Online</div>
+        <button class="btn" id="voiceBtnPlayer" onclick="connectVoicePlayer()">🎙️ Join Voice</button>
+        <div id="voiceStatusPlayer" style="font-size:13px; color:#4dd9c0; margin-top:10px;"></div>
+        <div class="user" id="playerUserInfo"></div>
+    </div>
+</div>
+
+<!-- ADMIN VIEW -->
+<div id="appScreen">
+    <div id="sidebar">
+        <div class="logo">🦕 Deep Isle</div>
+        <div class="nav-item active" onclick="showPanel('home', this)">🏠 Home</div>
+        <div class="nav-item" onclick="showPanel('players', this)">🦖 Players</div>
+        <div class="nav-item" onclick="showPanel('voice', this)">🎙️ Voice</div>
+        <div class="nav-item admin-only" onclick="showPanel('controls', this)">⚙️ Controls</div>
+        <div class="spacer"></div>
+        <div class="user-info" id="sidebarUser"></div>
+    </div>
+    <div id="main">
+        <div id="topbar">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <span id="topbarTitle">Home</span>
+                <select id="serverSelect" onchange="switchServer()" style="background:#112e2e; color:#4dd9c0; border:1px solid #1e4a4a; border-radius:6px; padding:4px 8px; font-size:13px;"></select>
+            </div>
+            <span style="font-size:12px; color:#4dd9c0;">● Server Online</span>
+        </div>
+        <div id="content">
+
+            <!-- HOME -->
+            <div class="panel active" id="panel-home">
+                <h2>Dashboard</h2>
+                <div class="stat-grid">
+                    <div class="stat-card">
+                        <div class="label">Players Online</div>
+                        <div class="value" id="statPlayers">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Server</div>
+                        <div class="value" style="font-size:16px; padding-top:6px;" id="statServer">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">LiveKit</div>
+                        <div class="value" style="font-size:16px; padding-top:6px;" id="statVoice">—</div>
+                    </div>
+                </div>
+                <h2>Recent Activity</h2>
+                <div class="log-box" id="activityLog"></div>
+            </div>
+
+            <!-- PLAYERS -->
+            <div class="panel" id="panel-players">
+                <h2>Players</h2>
+                <div id="playerList" style="font-size:14px; color:#a0c4c0;">Loading...</div>
+            </div>
+
+            <!-- VOICE -->
+            <div class="panel" id="panel-voice">
+                <h2>Voice</h2>
+                <p style="color:#a0c4c0; margin-bottom:20px;">Connect to the LiveKit voice room.</p>
+                <button class="btn" style="width:200px;" id="voiceBtnAdmin" onclick="connectVoiceAdmin()">🎙️ Join Voice</button>
+                <div id="voiceStatusAdmin" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
+            </div>
+
+            <!-- CONTROLS -->
+            <div class="panel" id="panel-controls">
+                <h2>Server Controls</h2>
+                <div id="leadAdminControls" style="display:none; margin-bottom:24px;">
+                    <p style="font-size:13px; color:#a0c4c0; margin-bottom:8px;">Server Power</p>
+                    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
+                        <button class="btn small danger" onclick="sendCommand('restart')">🔄 Restart Server</button>
+                        <button class="btn small danger" onclick="sendCommand('stop')">🛑 Stop Server</button>
+                    </div>
+                </div>
+                <div style="margin-bottom:24px;">
+                    <p style="font-size:13px; color:#a0c4c0; margin-bottom:8px;">Broadcast Message</p>
+                    <input type="text" id="broadcastMsg" placeholder="Message to all players..." />
+                    <button class="btn small" onclick="sendBroadcast()">📢 Send</button>
+                </div>
+                <div style="margin-bottom:24px;">
+                    <p style="font-size:13px; color:#a0c4c0; margin-bottom:8px;">Automation</p>
+                    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                        <button class="btn small" id="enforcerBtn" onclick="toggleEnforcer()">🎙️ Voice Enforcer: OFF</button>
+                        <button class="btn small" id="speciesBtn" onclick="toggleSpeciesLimiter()">🦖 Species Limiter: ON</button>
+                    </div>
+                </div>
+                <div id="controlStatus" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const API = 'http://localhost:8080';
+    let currentUser = '';
+    let currentSteamId = '';
+    let currentRole = '';
+    let currentServerId = '';
+    let currentServerName = '';
+    const ROLE_RANK = { player: 1, trial_admin: 2, admin: 3, lead_admin: 4, owner: 5 };
+
+    window.addEventListener('DOMContentLoaded', loadServerButtons);
+
+    // ── Login ──────────────────────────────────────────────────────────────────
+    async function loadServerButtons() {
+        try {
+            const res = await fetch(`${API}/servers`);
+            const data = await res.json();
+            const container = document.getElementById('serverButtons');
+            container.innerHTML = data.servers.map(s =>
+                `<button class="btn" onclick="startLogin('${s.id}', '${s.name}')">${s.name}</button>`
+            ).join('');
+        } catch {
+            showLoginStatus('Could not reach backend.', true);
+        }
+    }
+
+    async function startLogin(serverId, serverName) {
+        showLoginStatus(`Opening Steam login for ${serverName}...`, false);
+        try {
+            const startRes = await fetch(`${API}/api/auth/steam/start`);
+            if (!startRes.ok) throw new Error('Failed to start Steam auth');
+            const start = await startRes.json();
+            const code = await window.electronAPI.openSteamAuth(start.url);
+            showLoginStatus('Completing Steam login...', false);
+            const claimRes = await fetch(`${API}/api/auth/steam/claim`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+            });
+            if (!claimRes.ok) {
+                const err = await claimRes.json().catch(() => ({}));
+                throw new Error(err.error || 'Steam auth failed');
+            }
+            const session = await claimRes.json();
+            currentUser       = session.username;
+            currentSteamId    = session.steamId;
+            currentRole       = session.role;
+            currentServerId   = serverId;
+            currentServerName = serverName;
+            document.getElementById('loginScreen').style.display = 'none';
+            launchView();
+        } catch (err) {
+            showLoginStatus(err.message || 'Steam login failed', true);
+        }
+    }
+
+    function showLoginStatus(msg, isError) {
+        const el = document.getElementById('loginStatus');
+        el.textContent = msg;
+        el.style.color = isError ? '#f87171' : '#4dd9c0';
+    }
+
+    // ── View Routing ───────────────────────────────────────────────────────────
+    function launchView() {
+        const rank = ROLE_RANK[currentRole] || 1;
+        if (rank >= 2) {
+            launchAdminView();
+        } else {
+            launchPlayerView();
+        }
+    }
+
+    // ── Player View ────────────────────────────────────────────────────────────
+    function launchPlayerView() {
+        document.title = currentServerName;
+        document.getElementById('playerScreen').style.display = 'flex';
+        document.getElementById('playerServerName').textContent = currentServerName;
+        document.getElementById('playerUserInfo').textContent = '👤 ' + currentUser;
+        refreshPlayerCount();
+        setInterval(refreshPlayerCount, 30000);
+    }
+
+    async function refreshPlayerCount() {
+        try {
+            const res = await fetch(`${API}/players?serverId=${currentServerId}`);
+            const data = await res.json();
+            const count = Object.keys(data.players || {}).length;
+            document.getElementById('playerCount').textContent = count;
+        } catch {
+            document.getElementById('playerCount').textContent = '—';
+        }
+    }
+
+    // ── Admin View ─────────────────────────────────────────────────────────────
+    function launchAdminView() {
+        const rank = ROLE_RANK[currentRole] || 1;
+        document.title = currentServerName + ' Admin';
+        document.getElementById('appScreen').style.display = 'flex';
+        if (rank < 2) {
+            document.querySelector('.admin-only').style.display = 'none';
+        }
+        if (rank >= 4) {
+            document.getElementById('leadAdminControls').style.display = 'block';
+        }
+        const badges = { player: '🟢 Player', trial_admin: '🔵 Trial Admin', admin: '🟡 Admin', lead_admin: '🟠 Lead Admin', owner: '🔴 Owner' };
+        document.getElementById('sidebarUser').innerHTML = `👤 ${currentUser}<br><span style="font-size:11px; color:#a0c4c0;">${badges[currentRole] || currentRole}</span>`;
+        loadServers();
+        startDashboard();
+        loadToggleStates();
+    }
+
+    async function loadServers() {
+        const res = await fetch(`${API}/servers`);
+        const data = await res.json();
+        const select = document.getElementById('serverSelect');
+        select.innerHTML = data.servers.map(s =>
+            `<option value="${s.id}" ${s.id === currentServerId ? 'selected' : ''}>${s.name}</option>`
+        ).join('');
+        document.getElementById('statServer').textContent = currentServerName;
+    }
+
+    function switchServer() {
+        const select = document.getElementById('serverSelect');
+        currentServerId = select.value;
+        const opt = select.options[select.selectedIndex];
+        currentServerName = opt ? opt.text : currentServerId;
+        document.getElementById('statServer').textContent = currentServerName;
+        document.getElementById('statPlayers').textContent = '—';
+        document.getElementById('playerList').textContent = 'Loading...';
+        document.getElementById('controlStatus').textContent = '';
+        refreshPlayersWithLog();
+    }
+
+    function showPanel(name, el) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('panel-' + name).classList.add('active');
+        if (el) el.classList.add('active');
+        document.getElementById('topbarTitle').textContent = el ? el.textContent.trim() : name;
+    }
+
+    // ── Dashboard ──────────────────────────────────────────────────────────────
+    let lastPlayerList = {};
+
+    function startDashboard() {
+        refreshPlayersWithLog();
+        setInterval(refreshPlayersWithLog, 5000);
+        document.getElementById('statVoice').textContent = 'Ready';
+    }
+
+    async function refreshPlayersWithLog() {
+        try {
+            const res = await fetch(`${API}/players?serverId=${currentServerId}`);
+            const data = await res.json();
+            const players = data.players || {};
+            const count = Object.keys(players).length;
+            document.getElementById('statPlayers').textContent = count;
+            renderPlayerList(players);
+            for (const [id, name] of Object.entries(players)) {
+                if (!lastPlayerList[id]) {
+                    addActivityLog(`🦖 ${name} joined the server`, '#4dd9c0');
+                }
+            }
+            for (const [id, name] of Object.entries(lastPlayerList)) {
+                if (!players[id]) {
+                    addActivityLog(`💀 ${name} left the server`, '#facc15');
+                }
+            }
+            lastPlayerList = { ...players };
+        } catch {
+            document.getElementById('statPlayers').textContent = '—';
+        }
+    }
+
+    function addActivityLog(message, color = '#a0c4c0') {
+        const log = document.getElementById('activityLog');
+        const now = new Date();
+        const time = now.toLocaleTimeString();
+        const line = document.createElement('div');
+        line.style.color = color;
+        line.style.marginBottom = '4px';
+        line.textContent = `[${time}] ${message}`;
+        log.insertBefore(line, log.firstChild);
+        while (log.children.length > 100) log.removeChild(log.lastChild);
+    }
+
+    // ── Player List ────────────────────────────────────────────────────────────
+    function renderPlayerList(players) {
+        const el = document.getElementById('playerList');
+        const entries = Object.entries(players);
+        if (entries.length === 0) { el.textContent = 'No players online.'; return; }
+        const rank = ROLE_RANK[currentRole] || 1;
+        el.innerHTML = entries.map(([id, name]) => `
+            <div style="padding:10px 0; border-bottom:1px solid #1e4a4a;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                    <span>🦖 ${name}</span>
+                    <span style="font-size:11px; color:#a0c4c0;">${id}</span>
+                </div>
+                ${rank >= 2 ? `
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="text" id="reason-${id}" placeholder="Reason..." style="margin-bottom:0; padding:5px; font-size:12px; flex:1;" />
+                    <button class="btn small" onclick="kickPlayer('${id}', '${name}')">Kick</button>
+                    ${rank >= 3 ? `<button class="btn small danger" onclick="banPlayer('${id}', '${name}')">Ban</button>` : ''}
+                </div>` : ''}
+            </div>
+        `).join('');
+    }
+
+    async function kickPlayer(steamId, name) {
+        const reason = document.getElementById(`reason-${steamId}`).value || 'Kicked by admin';
+        try {
+            await fetch(`${API}/kick`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId, serverId: currentServerId, reason }),
+            });
+            refreshPlayersWithLog();
+        } catch {
+            alert('Failed to kick player.');
+        }
+    }
+
+    async function banPlayer(steamId, name) {
+        const reason = document.getElementById(`reason-${steamId}`).value || 'Banned by admin';
+        if (!confirm(`Are you sure you want to ban ${name}?`)) return;
+        try {
+            await fetch(`${API}/ban`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId, serverId: currentServerId, reason }),
+            });
+            refreshPlayersWithLog();
+        } catch {
+            alert('Failed to ban player.');
+        }
+    }
+
+    // ── Controls ───────────────────────────────────────────────────────────────
+    async function sendCommand(cmd) {
+        const status = document.getElementById('controlStatus');
+        status.textContent = 'Sending...';
+        try {
+            const res = await fetch(`${API}/command`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: cmd, serverId: currentServerId }),
+            });
+            const data = await res.json();
+            status.textContent = data.message || 'Done.';
+        } catch {
+            status.textContent = 'Failed to send command.';
+        }
+    }
+
+    async function sendBroadcast() {
+        const msg = document.getElementById('broadcastMsg').value.trim();
+        if (!msg) return;
+        const status = document.getElementById('controlStatus');
+        status.textContent = 'Sending...';
+        try {
+            const res = await fetch(`${API}/broadcast`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg, serverId: currentServerId }),
+            });
+            const data = await res.json();
+            status.textContent = data.message || 'Sent.';
+            document.getElementById('broadcastMsg').value = '';
+        } catch {
+            status.textContent = 'Failed to send.';
+        }
+    }
+
+    async function toggleEnforcer() {
+        try {
+            const res = await fetch(`${API}/enforcer/toggle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            const btn = document.getElementById('enforcerBtn');
+            btn.textContent = `🎙️ Voice Enforcer: ${data.enabled ? 'ON' : 'OFF'}`;
+            btn.style.background = data.enabled ? '#4dd9c0' : '';
+            document.getElementById('controlStatus').textContent = `Voice enforcer ${data.enabled ? 'enabled' : 'disabled'}.`;
+        } catch {
+            document.getElementById('controlStatus').textContent = 'Failed to toggle enforcer.';
+        }
+    }
+
+    async function toggleSpeciesLimiter() {
+        try {
+            const res = await fetch(`${API}/species-limiter/toggle`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+            });
+            const data = await res.json();
+            const btn = document.getElementById('speciesBtn');
+            btn.textContent = `🦖 Species Limiter: ${data.enabled ? 'ON' : 'OFF'}`;
+            btn.style.background = data.enabled ? '#4dd9c0' : '';
+            document.getElementById('controlStatus').textContent = `Species limiter ${data.enabled ? 'enabled' : 'disabled'}.`;
+        } catch {
+            document.getElementById('controlStatus').textContent = 'Failed to toggle species limiter.';
+        }
+    }
+
+    async function loadToggleStates() {
+        try {
+            const [enforcerRes, speciesRes] = await Promise.all([
+                fetch(`${API}/enforcer`),
+                fetch(`${API}/species-limiter`),
+            ]);
+            const enforcer = await enforcerRes.json();
+            const species = await speciesRes.json();
+            const enforcerBtn = document.getElementById('enforcerBtn');
+            const speciesBtn = document.getElementById('speciesBtn');
+            if (enforcerBtn) {
+                enforcerBtn.textContent = `🎙️ Voice Enforcer: ${enforcer.enabled ? 'ON' : 'OFF'}`;
+                enforcerBtn.style.background = enforcer.enabled ? '#4dd9c0' : '';
+            }
+            if (speciesBtn) {
+                speciesBtn.textContent = `🦖 Species Limiter: ${species.enabled ? 'ON' : 'OFF'}`;
+                speciesBtn.style.background = species.enabled ? '#4dd9c0' : '';
+            }
+        } catch {}
+    }
+
+    // ── Voice System ───────────────────────────────────────────────────────────
+    const LivekitClient = window.LivekitClient;
+    let room = null;
+    let localAudioTrack = null;
+    let currentRoom = '';
+    let pttActive = false;
+    let reshardTimer = null;
+    let lkContext = null;
+    let lkStream = null;
+    let lkGainNode = null;
+
+    async function buildAudioTrack() {
+        const constraints = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
+        lkStream = await navigator.mediaDevices.getUserMedia(constraints);
+        lkContext = new AudioContext();
+        await lkContext.resume();
+        const source = lkContext.createMediaStreamSource(lkStream);
+        lkGainNode = lkContext.createGain();
+        lkGainNode.gain.value = 1.0;
+        const dest = lkContext.createMediaStreamDestination();
+        source.connect(lkGainNode);
+        lkGainNode.connect(dest);
+        return new LivekitClient.LocalAudioTrack(dest.stream.getAudioTracks()[0], {}, false);
+    }
+
+    async function connectVoice(statusElId, btnElId) {
+        const status = document.getElementById(statusElId);
+        const btn = document.getElementById(btnElId);
+        status.textContent = 'Getting position...';
+        try {
+            const tokenRes = await fetch(`${API}/token`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
+            });
+            const tokenData = await tokenRes.json();
+            if (!tokenRes.ok) throw new Error(tokenData.error);
+
+            status.textContent = 'Connecting to voice...';
+            room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
+
+            room.on(LivekitClient.RoomEvent.Disconnected, () => {
+                status.textContent = 'Disconnected from voice.';
+                if (btn) btn.style.display = 'block';
+                clearInterval(reshardTimer);
+                fetch(`${API}/enforcer/voice-disconnected`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
+                }).catch(() => {});
+            });
+
+            room.on(LivekitClient.RoomEvent.ParticipantConnected, () => updateAudioMatrix());
+            room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => updateAudioMatrix());
+            room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, pub, participant) => {
+                if (track.kind === LivekitClient.Track.Kind.Audio) {
+                    const el = track.attach();
+                    el.id = `audio-${participant.identity}`;
+                    document.body.appendChild(el);
+                    updateAudioMatrix();
+                }
+            });
+            room.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track, pub, participant) => {
+                const el = document.getElementById(`audio-${participant.identity}`);
+                if (el) el.remove();
+            });
+
+            await room.connect(tokenData.url, tokenData.token, { autoSubscribe: true });
+            currentRoom = tokenData.room;
+            localAudioTrack = await buildAudioTrack();
+            await room.localParticipant.publishTrack(localAudioTrack);
+            localAudioTrack.mute();
+
+            status.textContent = `🎙️ Connected — Hold middle mouse to talk`;
+            if (btn) btn.style.display = 'none';
+
+            fetch(`${API}/enforcer/voice-connected`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
+            }).catch(() => {});
+
+            reshardTimer = setInterval(() => checkReshard(statusElId), 5000);
+
+            window.electronAPI.onPTTDown(() => {
+                if (localAudioTrack && !pttActive) {
+                    pttActive = true;
+                    localAudioTrack.unmute();
+                    playPTTTone(true);
+                }
+            });
+            window.electronAPI.onPTTUp(() => {
+                if (localAudioTrack && pttActive) {
+                    pttActive = false;
+                    localAudioTrack.mute();
+                    playPTTTone(false);
+                }
+            });
+        } catch (err) {
+            status.textContent = 'Voice error: ' + err.message;
+        }
+    }
+
+    function playPTTTone(isOpen) {
+        try {
+            const ctx = new AudioContext();
+            const oscillator = ctx.createOscillator();
+            const gain = ctx.createGain();
+            oscillator.connect(gain);
+            gain.connect(ctx.destination);
+            oscillator.frequency.value = isOpen ? 880 : 660;
+            oscillator.type = 'sine';
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.08);
+        } catch {}
+    }
+
+    async function checkReshard(statusElId) {
+        if (!room) return;
+        try {
+            const res = await fetch(`${API}/reshard`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
+            });
+            const data = await res.json();
+            if (data.room !== currentRoom) {
+                currentRoom = data.room;
+                await room.disconnect();
+                await room.connect(data.url, data.token, { autoSubscribe: true });
+                if (localAudioTrack) {
+                    await room.localParticipant.publishTrack(localAudioTrack);
+                    if (!pttActive) localAudioTrack.mute();
+                }
+                updateAudioMatrix();
+                const status = document.getElementById(statusElId);
+                if (status) status.textContent = `🎙️ Connected — Hold middle mouse to talk`;
+            }
+        } catch {}
+    }
+
+    async function updateAudioMatrix() {
+        if (!room) return;
+        try {
+            const res = await fetch(`${API}/audio-matrix?serverId=${currentServerId}&steamId=${currentSteamId}`);
+            const data = await res.json();
+            for (const state of data.states) {
+                const el = document.getElementById(`audio-${state.steamId}`);
+                if (el) el.volume = Math.max(0, Math.min(1, state.gain));
+            }
+        } catch {}
+    }
+
+    async function connectVoicePlayer() {
+        await connectVoice('voiceStatusPlayer', 'voiceBtnPlayer');
+    }
+
+    async function connectVoiceAdmin() {
+        await connectVoice('voiceStatusAdmin', 'voiceBtnAdmin');
+    }
+
+    window.electronAPI.onUpdateAvailable(() => {
+        addActivityLog('🔄 Update available — downloading...', '#facc15');
+});
+    window.electronAPI.onUpdateDownloaded(() => {
+        addActivityLog('✅ Update downloaded — will install on next restart.', '#4dd9c0');
+});
+
+</script>
+</body>
+</html>
