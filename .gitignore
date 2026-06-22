@@ -1,2 +1,4 @@
 node_modules/
 dist/
+Update.ps1
+release.ps1
