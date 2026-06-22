@@ -1,6 +1,5 @@
 # ── Deep Isle App Release Script ──────────────────────────────────────────────
-$GH_TOKEN = "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"
-$env:GH_TOKEN = $GH_TOKEN
+$env:GH_TOKEN = "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"
 $env:GYP_MSVS_VERSION = "2017"
 
 # Read current version from package.json
