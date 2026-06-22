@@ -1,46 +1,46 @@
 {
-  "name": "deepisle",
-  "version": "1.0.0",
-  "description": "Deep Isle Admin & Voice App",
-  "main": "main.js",
-  "author": "Deep Loadout",
-  "license": "ISC",
-  "scripts": {
-    "start": "electron .",
-    "build": "electron-builder"
-  },
-  "build": {
-    "appId": "com.deepisle.admin",
-    "productName": "The Deep Isle",
-    "win": {
-        "target": "nsis",
-        "icon": "icon.ico"
-    },
-    "nsis": {
-        "oneClick": true,
-        "perMachine": false,
-        "installerIcon": "icon.ico",
-        "uninstallerIcon": "icon.ico"
-    },
-    "publish": {
-        "provider": "github",
-        "owner": "TheDeepIsle",
-        "repo": "DeepIsleApp",
-        "releaseType": "release"
-    },
-    "files": [
-        "**/*",
-        "!node_modules/electron-builder/**",
-        "!node_modules/.cache/**"
-    ]
-},
-  "devDependencies": {
-    "electron": "^42.4.1",
-    "electron-builder": "^26.0.12"
-  },
-  "dependencies": {
-    "electron-updater": "^6.8.9",
-    "livekit-client": "^2.19.1",
-    "uiohook-napi": "^1.5.5"
-  }
+    "name":  "deepisle",
+    "version":  "1.0.1",
+    "description":  "Deep Isle Admin \u0026 Voice App",
+    "main":  "main.js",
+    "author":  "Deep Loadout",
+    "license":  "ISC",
+    "scripts":  {
+                    "start":  "electron .",
+                    "build":  "electron-builder"
+                },
+    "build":  {
+                  "appId":  "com.deepisle.admin",
+                  "productName":  "The Deep Isle",
+                  "win":  {
+                              "target":  "nsis",
+                              "icon":  "icon.ico"
+                          },
+                  "nsis":  {
+                               "oneClick":  true,
+                               "perMachine":  false,
+                               "installerIcon":  "icon.ico",
+                               "uninstallerIcon":  "icon.ico"
+                           },
+                  "publish":  {
+                                  "provider":  "github",
+                                  "owner":  "TheDeepIsle",
+                                  "repo":  "DeepIsleApp",
+                                  "releaseType":  "release"
+                              },
+                  "files":  [
+                                "**/*",
+                                "!node_modules/electron-builder/**",
+                                "!node_modules/.cache/**"
+                            ]
+              },
+    "devDependencies":  {
+                            "electron":  "^42.4.1",
+                            "electron-builder":  "^26.0.12"
+                        },
+    "dependencies":  {
+                         "electron-updater":  "^6.8.9",
+                         "livekit-client":  "^2.19.1",
+                         "uiohook-napi":  "^1.5.5"
+                     }
 }
