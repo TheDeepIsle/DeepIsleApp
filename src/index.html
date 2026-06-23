@@ -462,12 +462,18 @@
     
     let updateNotifyEnabled = false;
 
-    function toggleUpdateNotify() {
+    async function toggleUpdateNotify() {
         updateNotifyEnabled = !updateNotifyEnabled;
         const btn = document.getElementById('updateNotifyBtn');
         btn.textContent = `🔄 Update Notify: ${updateNotifyEnabled ? 'ON' : 'OFF'}`;
         btn.style.background = updateNotifyEnabled ? '#4dd9c0' : '';
         document.getElementById('controlStatus').textContent = `Update notifications ${updateNotifyEnabled ? 'enabled' : 'disabled'}.`;
+
+        await fetch(`${API}/settings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ updateNotify: updateNotifyEnabled }),
+        }).catch(() => {});
 
         if (updateNotifyEnabled) {
             window.electronAPI.onUpdateAvailable(() => {
@@ -483,14 +489,17 @@
 
     async function loadToggleStates() {
         try {
-            const [enforcerRes, speciesRes] = await Promise.all([
+            const [enforcerRes, speciesRes, settingsRes] = await Promise.all([
                 fetch(`${API}/enforcer`),
                 fetch(`${API}/species-limiter`),
+                fetch(`${API}/settings`),
             ]);
             const enforcer = await enforcerRes.json();
             const species = await speciesRes.json();
+            const settings = await settingsRes.json();
             const enforcerBtn = document.getElementById('enforcerBtn');
             const speciesBtn = document.getElementById('speciesBtn');
+            const updateBtn = document.getElementById('updateNotifyBtn');
             if (enforcerBtn) {
                 enforcerBtn.textContent = `🎙️ Voice Enforcer: ${enforcer.enabled ? 'ON' : 'OFF'}`;
                 enforcerBtn.style.background = enforcer.enabled ? '#4dd9c0' : '';
@@ -498,6 +507,11 @@
             if (speciesBtn) {
                 speciesBtn.textContent = `🦖 Species Limiter: ${species.enabled ? 'ON' : 'OFF'}`;
                 speciesBtn.style.background = species.enabled ? '#4dd9c0' : '';
+            }
+            if (updateBtn && settings.updateNotify) {
+                updateNotifyEnabled = true;
+                updateBtn.textContent = '🔄 Update Notify: ON';
+                updateBtn.style.background = '#4dd9c0';
             }
         } catch {}
     }
