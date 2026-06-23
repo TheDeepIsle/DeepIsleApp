@@ -286,7 +286,9 @@
         document.getElementById('statPlayers').textContent = '—';
         document.getElementById('playerList').textContent = 'Loading...';
         document.getElementById('controlStatus').textContent = '';
+        document.getElementById('activityLog').innerHTML = '';
         refreshPlayersWithLog();
+        loadActivityLog();
     }
 
     function showPanel(name, el) {
@@ -344,7 +346,7 @@
         await fetch(`${API}/activity-log`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ entry }),
+            body: JSON.stringify({ entry, serverId: currentServerId }),
         }).catch(() => {});
     }
 
@@ -525,7 +527,7 @@
     
     async function loadActivityLog() {
         try {
-            const res = await fetch(`${API}/activity-log`);
+            const res = await fetch(`${API}/activity-log?serverId=${currentServerId}`);
             const entries = await res.json();
             const log = document.getElementById('activityLog');
             log.innerHTML = '';
