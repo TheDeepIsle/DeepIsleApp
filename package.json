@@ -1,6 +1,6 @@
 {
     "name":  "deepisle",
-    "version":  "1.0.23",
+    "version":  "1.0.24",
     "description":  "Deep Isle Admin \u0026 Voice App",
     "main":  "main.js",
     "author":  "Deep Loadout",
@@ -20,8 +20,8 @@
                                "oneClick":  true,
                                "perMachine":  false,
                                "installerIcon":  "icon.ico",
-                               "uninstallerIcon":  "icon.ico"
-                               "artifactName": "DeepIsleAppSetup.exe"
+                               "uninstallerIcon":  "icon.ico",
+                               "artifactName":  "DeepIsleAppSetup.exe"
                            },
                   "publish":  {
                                   "provider":  "github",
