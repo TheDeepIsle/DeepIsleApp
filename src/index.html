@@ -146,6 +146,7 @@
                     <div style="display:flex; gap:12px; flex-wrap:wrap;">
                         <button class="btn small" id="enforcerBtn" onclick="toggleEnforcer()">🎙️ Voice Enforcer: OFF</button>
                         <button class="btn small" id="speciesBtn" onclick="toggleSpeciesLimiter()">🦖 Species Limiter: ON</button>
+                        <button class="btn small" id="updateNotifyBtn" onclick="toggleUpdateNotify()">🔄 Update Notify: OFF</button>
                     </div>
                 </div>
                 <div id="controlStatus" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
@@ -456,6 +457,27 @@
             document.getElementById('controlStatus').textContent = `Species limiter ${data.enabled ? 'enabled' : 'disabled'}.`;
         } catch {
             document.getElementById('controlStatus').textContent = 'Failed to toggle species limiter.';
+        }
+    }
+    
+    let updateNotifyEnabled = false;
+
+    function toggleUpdateNotify() {
+        updateNotifyEnabled = !updateNotifyEnabled;
+        const btn = document.getElementById('updateNotifyBtn');
+        btn.textContent = `🔄 Update Notify: ${updateNotifyEnabled ? 'ON' : 'OFF'}`;
+        btn.style.background = updateNotifyEnabled ? '#4dd9c0' : '';
+        document.getElementById('controlStatus').textContent = `Update notifications ${updateNotifyEnabled ? 'enabled' : 'disabled'}.`;
+
+        if (updateNotifyEnabled) {
+            window.electronAPI.onUpdateAvailable(() => {
+                alert('A new update is available and is being downloaded.');
+            });
+            window.electronAPI.onUpdateDownloaded(() => {
+                if (confirm('Update downloaded. Restart now to install?')) {
+                    window.location.reload();
+                }
+            });
         }
     }
 
