@@ -264,6 +264,7 @@
         loadServers();
         startDashboard();
         loadToggleStates();
+        loadActivityLog();
     }
 
     async function loadServers() {
@@ -329,16 +330,22 @@
         }
     }
 
-    function addActivityLog(message, color = '#a0c4c0') {
+    async function addActivityLog(message, color = '#a0c4c0') {
         const log = document.getElementById('activityLog');
         const now = new Date();
         const time = now.toLocaleTimeString();
+        const entry = { message, color, time };
         const line = document.createElement('div');
         line.style.color = color;
         line.style.marginBottom = '4px';
         line.textContent = `[${time}] ${message}`;
         log.insertBefore(line, log.firstChild);
         while (log.children.length > 100) log.removeChild(log.lastChild);
+        await fetch(`${API}/activity-log`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ entry }),
+        }).catch(() => {});
     }
 
     // ── Player List ────────────────────────────────────────────────────────────
@@ -512,6 +519,22 @@
                 updateNotifyEnabled = true;
                 updateBtn.textContent = '🔄 Update Notify: ON';
                 updateBtn.style.background = '#4dd9c0';
+            }
+        } catch {}
+    }
+    
+    async function loadActivityLog() {
+        try {
+            const res = await fetch(`${API}/activity-log`);
+            const entries = await res.json();
+            const log = document.getElementById('activityLog');
+            log.innerHTML = '';
+            for (const entry of entries) {
+                const line = document.createElement('div');
+                line.style.color = entry.color;
+                line.style.marginBottom = '4px';
+                line.textContent = `[${entry.time}] ${entry.message}`;
+                log.appendChild(line);
             }
         } catch {}
     }
