@@ -87,15 +87,21 @@ ipcMain.handle('open-steam-auth', async (_event, authUrl) => {
             return false;
         };
 
-        authWindow.webContents.on('will-redirect', (event, url) => {
-            if (inspectUrl(url)) event.preventDefault();
-        });
-        authWindow.webContents.on('will-navigate', (event, url) => {
-            if (inspectUrl(url)) event.preventDefault();
-        });
-        authWindow.webContents.on('did-navigate', (_event, url) => {
-            inspectUrl(url);
-        });
+        const logPath = require('path').join(require('os').homedir(), 'deepisle-auth.log');
+
+authWindow.webContents.on('will-redirect', (event, url) => {
+    require('fs').appendFileSync(logPath, `will-redirect: ${url}\n`);
+    if (inspectUrl(url)) event.preventDefault();
+});
+authWindow.webContents.on('will-navigate', (event, url) => {
+    require('fs').appendFileSync(logPath, `will-navigate: ${url}\n`);
+    if (inspectUrl(url)) event.preventDefault();
+});
+authWindow.webContents.on('did-navigate', (_event, url) => {
+    require('fs').appendFileSync(logPath, `did-navigate: ${url}\n`);
+    inspectUrl(url);
+});
+
         authWindow.on('closed', () => {
             if (!settled) {
                 settled = true;
