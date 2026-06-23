@@ -15,7 +15,7 @@ function createWindow() {
             contextIsolation: true,
         },
         title: 'Deep Isle Admin',
-        resizable: false,
+        resizable: true,
     });
     mainWindow.loadFile('src/index.html');
     try {
