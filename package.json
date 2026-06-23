@@ -21,7 +21,7 @@
                                "perMachine":  false,
                                "installerIcon":  "icon.ico",
                                "uninstallerIcon":  "icon.ico"
-                               "artifactName": "The-Deep-Isle-Setup.exe"
+                               "artifactName": "DeepIsleAppSetup.exe"
                            },
                   "publish":  {
                                   "provider":  "github",
