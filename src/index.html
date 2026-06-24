@@ -17,13 +17,15 @@
         .btn.danger:hover { background: #ef4444; }
         .btn.small { padding: 6px 12px; font-size: 13px; width: auto; display: inline-block; margin-bottom: 0; }
         input { width: 100%; padding: 10px; margin-bottom: 14px; background: #0d1f1f; border: 1px solid #1e4a4a; border-radius: 6px; color: #e0f7f4; font-size: 14px; }
-        #playerScreen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100vh; gap: 24px; }
         .player-card { background: #112e2e; border: 1px solid #1e4a4a; border-radius: 10px; padding: 32px; width: 400px; text-align: center; }
         .player-card h2 { color: #4dd9c0; font-size: 22px; margin-bottom: 8px; }
         .player-card .status { font-size: 13px; color: #4dd9c0; margin-bottom: 20px; }
         .player-card .count { font-size: 48px; font-weight: bold; color: #4dd9c0; margin-bottom: 4px; }
         .player-card .count-label { font-size: 13px; color: #a0c4c0; margin-bottom: 24px; }
         .player-card .user { font-size: 12px; color: #a0c4c0; margin-top: 16px; }
+        .player-tab { padding: 12px 24px; cursor: pointer; font-size: 14px; color: #a0c4c0; border-bottom: 3px solid transparent; }
+        .player-tab:hover { color: #e0f7f4; background: #112e2e; }
+        .player-tab.active { color: #4dd9c0; border-bottom: 3px solid #4dd9c0; }
         #appScreen { display: none; flex-direction: row; height: 100vh; }
         #sidebar { width: 180px; background: #091818; border-right: 1px solid #1e4a4a; display: flex; flex-direction: column; padding: 16px 0; }
         #sidebar .logo { color: #4dd9c0; font-size: 16px; font-weight: bold; padding: 0 16px 20px; border-bottom: 1px solid #1e4a4a; margin-bottom: 12px; }
@@ -58,15 +60,40 @@
 </div>
 
 <!-- PLAYER VIEW -->
-<div id="playerScreen">
-    <div class="player-card">
-        <h2 id="playerServerName">—</h2>
-        <div class="status">● Online</div>
-        <div class="count" id="playerCount">—</div>
-        <div class="count-label">Players Online</div>
-        <button class="btn" id="voiceBtnPlayer" onclick="connectVoicePlayer()">🎙️ Join Voice</button>
-        <div id="voiceStatusPlayer" style="font-size:13px; color:#4dd9c0; margin-top:10px;"></div>
-        <div class="user" id="playerUserInfo"></div>
+<div id="playerScreen" style="display:none; flex-direction:column; height:100vh;">
+    <!-- Tab Bar -->
+    <div style="background:#091818; border-bottom:1px solid #1e4a4a; display:flex;">
+        <div class="player-tab active" id="tab-dashboard" onclick="switchPlayerTab('dashboard')">🏠 Dashboard</div>
+        <div class="player-tab" id="tab-storage" onclick="switchPlayerTab('storage')">🦕 Dino Storage</div>
+    </div>
+
+    <!-- Dashboard Tab -->
+    <div id="playerTab-dashboard" style="display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:24px;">
+        <div class="player-card">
+            <h2 id="playerServerName">—</h2>
+            <div class="status">● Online</div>
+            <div class="count" id="playerCount">—</div>
+            <div class="count-label">Players Online</div>
+            <button class="btn" id="voiceBtnPlayer" onclick="connectVoicePlayer()">🎙️ Join Voice</button>
+            <div id="voiceStatusPlayer" style="font-size:13px; color:#4dd9c0; margin-top:10px;"></div>
+            <div class="user" id="playerUserInfo"></div>
+        </div>
+    </div>
+
+    <!-- Dino Storage Tab -->
+    <div id="playerTab-storage" style="display:none; flex:1; flex-direction:column; align-items:center; justify-content:flex-start; padding:32px; overflow-y:auto;">
+        <div style="width:100%; max-width:500px;">
+            <h2 style="color:#4dd9c0; margin-bottom:8px;">🦕 Dino Storage</h2>
+            <p style="color:#a0c4c0; font-size:13px; margin-bottom:24px;">Store your dinosaur and load it back later. You must leave the server first.</p>
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+                <input type="text" id="playerSlotNameInput" placeholder="Slot name (e.g. My Rex)" style="margin-bottom:0; flex:1; font-size:13px;" />
+                <button class="btn small" onclick="storeDinoPlayer()">💾 Store</button>
+            </div>
+            <button class="btn danger" style="margin-bottom:16px;" onclick="startFreshPlayer()">🆕 Start Fresh</button>
+            <div id="playerStorageStatus" style="font-size:13px; color:#4dd9c0; margin-bottom:16px;"></div>
+            <h3 style="color:#4dd9c0; margin-bottom:12px;">Stored Dinos</h3>
+            <div id="playerStorageSlots" style="font-size:13px; color:#a0c4c0;">Loading...</div>
+        </div>
     </div>
 </div>
 
@@ -78,6 +105,7 @@
         <div class="nav-item" onclick="showPanel('players', this)">🦖 Players</div>
         <div class="nav-item" onclick="showPanel('voice', this)">🎙️ Voice</div>
         <div class="nav-item admin-only" onclick="showPanel('controls', this)">⚙️ Controls</div>
+        <div class="nav-item" onclick="showPanel('storage', this)">🦕 Dino Storage</div>
         <div class="spacer"></div>
         <div class="user-info" id="sidebarUser"></div>
     </div>
@@ -150,6 +178,20 @@
                     </div>
                 </div>
                 <div id="controlStatus" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
+            </div>
+
+            <!-- DINO STORAGE -->
+            <div class="panel" id="panel-storage">
+                <h2>Dino Storage</h2>
+                <p style="color:#a0c4c0; font-size:13px; margin-bottom:20px;">Store your dinosaur progress and load it back later. You must leave the server before storing or loading a dino.</p>
+                <div style="display:flex; gap:8px; margin-bottom:20px; align-items:center;">
+                    <input type="text" id="slotNameInput" placeholder="Slot name (e.g. My Rex)" style="margin-bottom:0; flex:1;" />
+                    <button class="btn small" onclick="storeDino()">💾 Store Dino</button>
+                    <button class="btn small danger" onclick="startFreshPlayer()">🆕 Start Fresh</button>
+                </div>
+                <div id="storageStatus" style="margin-bottom:16px; font-size:13px; color:#4dd9c0;"></div>
+                <h2 style="margin-bottom:12px;">Stored Dinos</h2>
+                <div id="storageSlots" style="font-size:14px; color:#a0c4c0;">Loading...</div>
             </div>
 
         </div>
@@ -237,6 +279,14 @@
         setInterval(refreshPlayerCount, 30000);
     }
 
+    function switchPlayerTab(name) {
+        document.querySelectorAll('.player-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('tab-' + name).classList.add('active');
+        document.getElementById('playerTab-dashboard').style.display = name === 'dashboard' ? 'flex' : 'none';
+        document.getElementById('playerTab-storage').style.display = name === 'storage' ? 'flex' : 'none';
+        if (name === 'storage') loadPlayerStorageSlots();
+    }
+
     async function refreshPlayerCount() {
         try {
             const res = await fetch(`${API}/players?serverId=${currentServerId}`);
@@ -265,6 +315,7 @@
         startDashboard();
         loadToggleStates();
         loadActivityLog();
+        loadStorageSlots();
     }
 
     async function loadServers() {
@@ -298,6 +349,7 @@
         document.getElementById('panel-' + name).classList.add('active');
         if (el) el.classList.add('active');
         document.getElementById('topbarTitle').textContent = el ? el.textContent.trim() : name;
+        if (name === 'storage') loadStorageSlots();
     }
 
     // ── Dashboard ──────────────────────────────────────────────────────────────
@@ -469,7 +521,7 @@
             document.getElementById('controlStatus').textContent = 'Failed to toggle species limiter.';
         }
     }
-    
+
     let updateNotifyEnabled = false;
 
     async function toggleUpdateNotify() {
@@ -478,13 +530,11 @@
         btn.textContent = `🔄 Update Notify: ${updateNotifyEnabled ? 'ON' : 'OFF'}`;
         btn.style.background = updateNotifyEnabled ? '#4dd9c0' : '';
         document.getElementById('controlStatus').textContent = `Update notifications ${updateNotifyEnabled ? 'enabled' : 'disabled'}.`;
-
         await fetch(`${API}/settings`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ updateNotify: updateNotifyEnabled }),
         }).catch(() => {});
-
         if (updateNotifyEnabled) {
             window.electronAPI.onUpdateAvailable(() => {
                 alert('A new update is available and is being downloaded.');
@@ -525,7 +575,7 @@
             }
         } catch {}
     }
-    
+
     async function loadActivityLog() {
         try {
             const res = await fetch(`${API}/activity-log?serverId=${currentServerId}`);
@@ -579,10 +629,8 @@
             });
             const tokenData = await tokenRes.json();
             if (!tokenRes.ok) throw new Error(tokenData.error);
-
             status.textContent = 'Connecting to voice...';
             room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
-
             room.on(LivekitClient.RoomEvent.Disconnected, () => {
                 status.textContent = 'Disconnected from voice.';
                 if (btn) btn.style.display = 'block';
@@ -593,7 +641,6 @@
                     body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
                 }).catch(() => {});
             });
-
             room.on(LivekitClient.RoomEvent.ParticipantConnected, () => updateAudioMatrix());
             room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => updateAudioMatrix());
             room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, pub, participant) => {
@@ -608,24 +655,19 @@
                 const el = document.getElementById(`audio-${participant.identity}`);
                 if (el) el.remove();
             });
-
             await room.connect(tokenData.url, tokenData.token, { autoSubscribe: true });
             currentRoom = tokenData.room;
             localAudioTrack = await buildAudioTrack();
             await room.localParticipant.publishTrack(localAudioTrack);
             localAudioTrack.mute();
-
             status.textContent = `🎙️ Connected — Hold middle mouse to talk`;
             if (btn) btn.style.display = 'none';
-
             fetch(`${API}/enforcer/voice-connected`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
             }).catch(() => {});
-
             reshardTimer = setInterval(() => checkReshard(statusElId), 5000);
-
             window.electronAPI.onPTTDown(() => {
                 if (localAudioTrack && !pttActive) {
                     pttActive = true;
@@ -707,10 +749,206 @@
 
     window.electronAPI.onUpdateAvailable(() => {
         addActivityLog('🔄 Update available — downloading...', '#facc15');
-});
+    });
     window.electronAPI.onUpdateDownloaded(() => {
         addActivityLog('✅ Update downloaded — will install on next restart.', '#4dd9c0');
-});
+    });
+
+    // ── Admin Dino Storage ─────────────────────────────────────────────────────
+    async function loadStorageSlots() {
+        try {
+            const res = await fetch(`${API}/dino-storage?steamId=${currentSteamId}&serverId=${currentServerId}`);
+            const data = await res.json();
+            const el = document.getElementById('storageSlots');
+            if (!data.slots || data.slots.length === 0) {
+                el.textContent = 'No stored dinos yet.';
+                return;
+            }
+            el.innerHTML = data.slots.map(slot => `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #1e4a4a;">
+                    <div>
+                        <span>🦕 ${slot.slot}</span>
+                        <span style="font-size:11px; color:#a0c4c0; margin-left:12px;">Saved: ${new Date(slot.saved).toLocaleString()}</span>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn small" onclick="loadDino('${slot.slot}')">▶ Load</button>
+                        <button class="btn small danger" onclick="deleteDino('${slot.slot}')">🗑 Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch {
+            document.getElementById('storageSlots').textContent = 'Failed to load storage.';
+        }
+    }
+
+    async function storeDino() {
+        const slotName = document.getElementById('slotNameInput').value.trim();
+        const status = document.getElementById('storageStatus');
+        if (!slotName) { status.textContent = 'Enter a slot name first.'; status.style.color = '#f87171'; return; }
+        status.textContent = 'Storing dino...';
+        status.style.color = '#4dd9c0';
+        try {
+            const res = await fetch(`${API}/dino-storage/store`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName, startFresh: false }),
+            });
+            const data = await res.json();
+            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+            status.textContent = data.message;
+            document.getElementById('slotNameInput').value = '';
+            loadStorageSlots();
+        } catch {
+            status.style.color = '#f87171';
+            status.textContent = 'Failed to store dino.';
+        }
+    }
+
+    async function loadDino(slotName) {
+        const status = document.getElementById('storageStatus');
+        if (!confirm(`Load dino from slot "${slotName}"? You must be off the server for this to work.`)) return;
+        status.textContent = 'Loading dino...';
+        status.style.color = '#4dd9c0';
+        try {
+            const res = await fetch(`${API}/dino-storage/load`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }),
+            });
+            const data = await res.json();
+            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+            status.textContent = data.message;
+        } catch {
+            status.style.color = '#f87171';
+            status.textContent = 'Failed to load dino.';
+        }
+    }
+
+    async function deleteDino(slotName) {
+        const status = document.getElementById('storageStatus');
+        if (!confirm(`Delete slot "${slotName}"? This cannot be undone.`)) return;
+        try {
+            const res = await fetch(`${API}/dino-storage/delete`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }),
+            });
+            const data = await res.json();
+            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+            status.textContent = data.message;
+            loadStorageSlots();
+        } catch {
+            status.style.color = '#f87171';
+            status.textContent = 'Failed to delete slot.';
+        }
+    }
+
+    async function startFreshPlayer() {
+        const statusId = document.getElementById('playerStorageStatus') ? 'playerStorageStatus' : 'storageStatus';
+        const status = document.getElementById(statusId);
+        if (!confirm('Start fresh? Your current dino will be lost permanently. Any stored dinos are safe.')) return;
+        status.textContent = 'Clearing save...';
+        status.style.color = '#4dd9c0';
+        try {
+            const res = await fetch(`${API}/dino-storage/start-fresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
+            });
+            const data = await res.json();
+            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+            status.textContent = data.message;
+        } catch {
+            status.style.color = '#f87171';
+            status.textContent = 'Failed to clear save.';
+        }
+    }
+
+    // ── Player Dino Storage ────────────────────────────────────────────────────
+    async function loadPlayerStorageSlots() {
+        try {
+            const res = await fetch(`${API}/dino-storage?steamId=${currentSteamId}&serverId=${currentServerId}`);
+            const data = await res.json();
+            const el = document.getElementById('playerStorageSlots');
+            if (!data.slots || data.slots.length === 0) {
+                el.textContent = 'No stored dinos yet.';
+                return;
+            }
+            el.innerHTML = data.slots.map(slot => `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1e4a4a;">
+                    <span>🦕 ${slot.slot}</span>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn small" onclick="loadDinoPlayer('${slot.slot}')">▶ Load</button>
+                        <button class="btn small danger" onclick="deleteDinoPlayer('${slot.slot}')">🗑</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch {
+            document.getElementById('playerStorageSlots').textContent = 'Failed to load storage.';
+        }
+    }
+
+    async function storeDinoPlayer() {
+        const slotName = document.getElementById('playerSlotNameInput').value.trim();
+        const status = document.getElementById('playerStorageStatus');
+        if (!slotName) { status.textContent = 'Enter a slot name first.'; status.style.color = '#f87171'; return; }
+        status.textContent = 'Storing dino...';
+        status.style.color = '#4dd9c0';
+        try {
+            const res = await fetch(`${API}/dino-storage/store`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName, startFresh: false }),
+            });
+            const data = await res.json();
+            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+            status.textContent = data.message;
+            document.getElementById('playerSlotNameInput').value = '';
+            loadPlayerStorageSlots();
+        } catch {
+            status.style.color = '#f87171';
+            status.textContent = 'Failed to store dino.';
+        }
+    }
+
+    async function loadDinoPlayer(slotName) {
+        const status = document.getElementById('playerStorageStatus');
+        if (!confirm(`Load dino from slot "${slotName}"? You must be off the server.`)) return;
+        status.textContent = 'Loading dino...';
+        status.style.color = '#4dd9c0';
+        try {
+            const res = await fetch(`${API}/dino-storage/load`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }),
+            });
+            const data = await res.json();
+            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+            status.textContent = data.message;
+        } catch {
+            status.style.color = '#f87171';
+            status.textContent = 'Failed to load dino.';
+        }
+    }
+
+    async function deleteDinoPlayer(slotName) {
+        const status = document.getElementById('playerStorageStatus');
+        if (!confirm(`Delete slot "${slotName}"? This cannot be undone.`)) return;
+        try {
+            const res = await fetch(`${API}/dino-storage/delete`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }),
+            });
+            const data = await res.json();
+            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+            status.textContent = data.message;
+            loadPlayerStorageSlots();
+        } catch {
+            status.style.color = '#f87171';
+            status.textContent = 'Failed to delete slot.';
+        }
+    }
 
 </script>
 </body>
