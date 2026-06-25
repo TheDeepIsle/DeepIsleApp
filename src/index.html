@@ -45,6 +45,29 @@
         .stat-card .label { font-size: 12px; color: #a0c4c0; margin-bottom: 8px; }
         .stat-card .value { font-size: 28px; font-weight: bold; color: #4dd9c0; }
         .log-box { background: #091818; border: 1px solid #1e4a4a; border-radius: 8px; padding: 14px; font-size: 12px; font-family: monospace; height: 200px; overflow-y: auto; color: #a0c4c0; }
+
+        /* ── Map Styles ── */
+        #mapPanel { display: none; flex-direction: column; height: 100%; }
+        #mapPanel.active { display: flex; }
+        #mapContainer { position: relative; flex: 1; overflow: hidden; background: #05121a; cursor: grab; user-select: none; }
+        #mapContainer:active { cursor: grabbing; }
+        #mapCanvas { position: absolute; top: 0; left: 0; }
+        #mapLegend { background: #091818; border-top: 1px solid #1e4a4a; padding: 8px 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; font-size: 12px; }
+        .legend-item { display: flex; align-items: center; gap: 5px; cursor: pointer; padding: 3px 6px; border-radius: 4px; }
+        .legend-item:hover { background: #112e2e; }
+        .legend-item.disabled { opacity: 0.35; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+        .legend-rect { width: 12px; height: 8px; border-radius: 2px; }
+        #mapTooltip { position: fixed; background: #112e2e; border: 1px solid #1e4a4a; border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #e0f7f4; pointer-events: none; display: none; z-index: 1000; max-width: 160px; }
+        #mapCoords { position: absolute; bottom: 8px; right: 8px; background: rgba(9,24,24,0.85); border: 1px solid #1e4a4a; border-radius: 4px; padding: 4px 8px; font-size: 11px; color: #4dd9c0; font-family: monospace; }
+
+        /* Player map tab */
+        #playerTab-map { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+        #playerMapContainer { position: relative; flex: 1; overflow: hidden; background: #05121a; cursor: grab; user-select: none; }
+        #playerMapContainer:active { cursor: grabbing; }
+        #playerMapCanvas { position: absolute; top: 0; left: 0; }
+        #playerMapCoords { position: absolute; bottom: 8px; right: 8px; background: rgba(9,24,24,0.85); border: 1px solid #1e4a4a; border-radius: 4px; padding: 4px 8px; font-size: 11px; color: #4dd9c0; font-family: monospace; }
+        #playerMapLegend { background: #091818; border-top: 1px solid #1e4a4a; padding: 8px 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -61,10 +84,10 @@
 
 <!-- PLAYER VIEW -->
 <div id="playerScreen" style="display:none; flex-direction:column; height:100vh;">
-    <!-- Tab Bar -->
     <div style="background:#091818; border-bottom:1px solid #1e4a4a; display:flex;">
         <div class="player-tab active" id="tab-dashboard" onclick="switchPlayerTab('dashboard')">🏠 Dashboard</div>
         <div class="player-tab" id="tab-storage" onclick="switchPlayerTab('storage')">🦕 Dino Storage</div>
+        <div class="player-tab" id="tab-map" onclick="switchPlayerTab('map')">🗺️ Map</div>
     </div>
 
     <!-- Dashboard Tab -->
@@ -95,6 +118,25 @@
             <div id="playerStorageSlots" style="font-size:13px; color:#a0c4c0;">Loading...</div>
         </div>
     </div>
+
+    <!-- Map Tab (Player) -->
+    <div id="playerTab-map" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+        <div id="playerMapContainer">
+            <canvas id="playerMapCanvas"></canvas>
+            <div id="playerMapCoords">—</div>
+        </div>
+        <div id="playerMapLegend">
+            <span style="color:#a0c4c0; margin-right:4px;">Layers:</span>
+            <div class="legend-item" id="pleg-sanctuary" onclick="togglePlayerLayer('sanctuary')"><div class="legend-rect" style="background:rgba(74,222,128,0.35); border:1px solid #4ade80;"></div> Sanctuaries</div>
+            <div class="legend-item" id="pleg-migration" onclick="togglePlayerLayer('migration')"><div class="legend-rect" style="background:rgba(251,191,36,0.2); border:1px solid #fbbf24;"></div> Migration</div>
+            <div class="legend-item" id="pleg-water" onclick="togglePlayerLayer('water')"><div class="legend-dot" style="background:#38bdf8;"></div> Water</div>
+            <div class="legend-item" id="pleg-landmark" onclick="togglePlayerLayer('landmark')"><div class="legend-dot" style="background:#c084fc;"></div> Landmarks</div>
+            <div class="legend-item" id="pleg-salt" onclick="togglePlayerLayer('salt')"><div class="legend-dot" style="background:#fb923c;"></div> Salt Licks</div>
+            <div class="legend-item" id="pleg-gastro" onclick="togglePlayerLayer('gastro')"><div class="legend-dot" style="background:#a3e635;"></div> Gastroliths</div>
+            <div class="legend-item" id="pleg-food" onclick="togglePlayerLayer('food')"><div class="legend-dot" style="background:#f9a8d4;"></div> AI Food</div>
+            <div class="legend-item" style="margin-left:auto;"><div class="legend-dot" style="background:#ff4444; border:2px solid #fff;"></div> You</div>
+        </div>
+    </div>
 </div>
 
 <!-- ADMIN VIEW -->
@@ -106,6 +148,7 @@
         <div class="nav-item" onclick="showPanel('voice', this)">🎙️ Voice</div>
         <div class="nav-item admin-only" onclick="showPanel('controls', this)">⚙️ Controls</div>
         <div class="nav-item" onclick="showPanel('storage', this)">🦕 Dino Storage</div>
+        <div class="nav-item" onclick="showPanel('map', this)">🗺️ Map</div>
         <div class="spacer"></div>
         <div class="user-info" id="sidebarUser"></div>
     </div>
@@ -123,18 +166,9 @@
             <div class="panel active" id="panel-home">
                 <h2>Dashboard</h2>
                 <div class="stat-grid">
-                    <div class="stat-card">
-                        <div class="label">Players Online</div>
-                        <div class="value" id="statPlayers">—</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="label">Server</div>
-                        <div class="value" style="font-size:16px; padding-top:6px;" id="statServer">—</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="label">LiveKit</div>
-                        <div class="value" style="font-size:16px; padding-top:6px;" id="statVoice">—</div>
-                    </div>
+                    <div class="stat-card"><div class="label">Players Online</div><div class="value" id="statPlayers">—</div></div>
+                    <div class="stat-card"><div class="label">Server</div><div class="value" style="font-size:16px; padding-top:6px;" id="statServer">—</div></div>
+                    <div class="stat-card"><div class="label">LiveKit</div><div class="value" style="font-size:16px; padding-top:6px;" id="statVoice">—</div></div>
                 </div>
                 <h2>Recent Activity</h2>
                 <div class="log-box" id="activityLog"></div>
@@ -194,770 +228,877 @@
                 <div id="storageSlots" style="font-size:14px; color:#a0c4c0;">Loading...</div>
             </div>
 
+            <!-- MAP (Admin) -->
+            <div class="panel" id="panel-map" style="padding:0; height:calc(100vh - 49px); display:none; flex-direction:column;">
+                <div id="mapContainer">
+                    <canvas id="mapCanvas"></canvas>
+                    <div id="mapCoords">—</div>
+                </div>
+                <div id="mapTooltip"></div>
+                <div id="mapLegend">
+                    <span style="color:#a0c4c0; margin-right:4px;">Layers:</span>
+                    <div class="legend-item" id="leg-sanctuary" onclick="toggleLayer('sanctuary')"><div class="legend-rect" style="background:rgba(74,222,128,0.35); border:1px solid #4ade80;"></div> Sanctuaries</div>
+                    <div class="legend-item" id="leg-migration" onclick="toggleLayer('migration')"><div class="legend-rect" style="background:rgba(251,191,36,0.2); border:1px solid #fbbf24;"></div> Migration</div>
+                    <div class="legend-item" id="leg-patrol" onclick="toggleLayer('patrol')"><div class="legend-rect" style="background:rgba(148,163,184,0.1); border:1px solid #64748b;"></div> Patrol Zones</div>
+                    <div class="legend-item" id="leg-water" onclick="toggleLayer('water')"><div class="legend-dot" style="background:#38bdf8;"></div> Water</div>
+                    <div class="legend-item" id="leg-landmark" onclick="toggleLayer('landmark')"><div class="legend-dot" style="background:#c084fc;"></div> Landmarks</div>
+                    <div class="legend-item" id="leg-salt" onclick="toggleLayer('salt')"><div class="legend-dot" style="background:#fb923c;"></div> Salt Licks</div>
+                    <div class="legend-item" id="leg-gastro" onclick="toggleLayer('gastro')"><div class="legend-dot" style="background:#a3e635;"></div> Gastroliths</div>
+                    <div class="legend-item" id="leg-food" onclick="toggleLayer('food')"><div class="legend-rect" style="background:#f9a8d4; border-radius:2px;"></div> AI Food</div>
+                    <div class="legend-item" id="leg-area" onclick="toggleLayer('area')"><div class="legend-dot" style="background:#94a3b8;"></div> Areas</div>
+                    <div class="legend-item" id="leg-players" onclick="toggleLayer('players')"><div class="legend-dot" style="background:#ff4444;"></div> Players</div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
 
 <script>
-    const API = 'http://75.185.83.53:8080';
-    let currentUser = '';
-    let currentSteamId = '';
-    let currentRole = '';
-    let currentServerId = '';
-    let currentServerName = '';
-    const ROLE_RANK = { player: 1, trial_admin: 2, admin: 3, lead_admin: 4, owner: 5 };
+const API = 'http://75.185.83.53:8080';
+let currentUser = '';
+let currentSteamId = '';
+let currentRole = '';
+let currentServerId = '';
+let currentServerName = '';
+const ROLE_RANK = { player: 1, trial_admin: 2, admin: 3, lead_admin: 4, owner: 5 };
 
-    window.addEventListener('DOMContentLoaded', loadServerButtons);
+window.addEventListener('DOMContentLoaded', loadServerButtons);
 
-    // ── Login ──────────────────────────────────────────────────────────────────
-    async function loadServerButtons() {
-        try {
-            const res = await fetch(`${API}/servers`);
-            const data = await res.json();
-            const container = document.getElementById('serverButtons');
-            container.innerHTML = data.servers.map(s =>
-                `<button class="btn" onclick="startLogin('${s.id}', '${s.name}')">${s.name}</button>`
-            ).join('');
-        } catch {
-            showLoginStatus('Could not reach backend.', true);
-        }
-    }
-
-    async function startLogin(serverId, serverName) {
-        showLoginStatus(`Opening Steam login for ${serverName}...`, false);
-        try {
-            const startRes = await fetch(`${API}/api/auth/steam/start`);
-            if (!startRes.ok) throw new Error('Failed to start Steam auth');
-            const start = await startRes.json();
-            const code = await window.electronAPI.openSteamAuth(start.url);
-            showLoginStatus('Completing Steam login...', false);
-            const claimRes = await fetch(`${API}/api/auth/steam/claim`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code }),
-            });
-            if (!claimRes.ok) {
-                const err = await claimRes.json().catch(() => ({}));
-                throw new Error(err.error || 'Steam auth failed');
-            }
-            const session = await claimRes.json();
-            currentUser       = session.username;
-            currentSteamId    = session.steamId;
-            currentRole       = session.role;
-            currentServerId   = serverId;
-            currentServerName = serverName;
-            document.getElementById('loginScreen').style.display = 'none';
-            launchView();
-        } catch (err) {
-            showLoginStatus(err.message || 'Steam login failed', true);
-        }
-    }
-
-    function showLoginStatus(msg, isError) {
-        const el = document.getElementById('loginStatus');
-        el.textContent = msg;
-        el.style.color = isError ? '#f87171' : '#4dd9c0';
-    }
-
-    // ── View Routing ───────────────────────────────────────────────────────────
-    function launchView() {
-        const rank = ROLE_RANK[currentRole] || 1;
-        if (rank >= 2) {
-            launchAdminView();
-        } else {
-            launchPlayerView();
-        }
-    }
-
-    // ── Player View ────────────────────────────────────────────────────────────
-    function launchPlayerView() {
-        document.title = currentServerName;
-        document.getElementById('playerScreen').style.display = 'flex';
-        document.getElementById('playerServerName').textContent = currentServerName;
-        document.getElementById('playerUserInfo').textContent = '👤 ' + currentUser;
-        refreshPlayerCount();
-        setInterval(refreshPlayerCount, 30000);
-    }
-
-    function switchPlayerTab(name) {
-        document.querySelectorAll('.player-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('tab-' + name).classList.add('active');
-        document.getElementById('playerTab-dashboard').style.display = name === 'dashboard' ? 'flex' : 'none';
-        document.getElementById('playerTab-storage').style.display = name === 'storage' ? 'flex' : 'none';
-        if (name === 'storage') loadPlayerStorageSlots();
-    }
-
-    async function refreshPlayerCount() {
-        try {
-            const res = await fetch(`${API}/players?serverId=${currentServerId}`);
-            const data = await res.json();
-            const count = Object.keys(data.players || {}).length;
-            document.getElementById('playerCount').textContent = count;
-        } catch {
-            document.getElementById('playerCount').textContent = '—';
-        }
-    }
-
-    // ── Admin View ─────────────────────────────────────────────────────────────
-    function launchAdminView() {
-        const rank = ROLE_RANK[currentRole] || 1;
-        document.title = currentServerName + ' Admin';
-        document.getElementById('appScreen').style.display = 'flex';
-        if (rank < 2) {
-            document.querySelector('.admin-only').style.display = 'none';
-        }
-        if (rank >= 4) {
-            document.getElementById('leadAdminControls').style.display = 'block';
-        }
-        const badges = { player: '🟢 Player', trial_admin: '🔵 Trial Admin', admin: '🟡 Admin', lead_admin: '🟠 Lead Admin', owner: '🔴 Owner' };
-        document.getElementById('sidebarUser').innerHTML = `👤 ${currentUser}<br><span style="font-size:11px; color:#a0c4c0;">${badges[currentRole] || currentRole}</span>`;
-        loadServers();
-        startDashboard();
-        loadToggleStates();
-        loadActivityLog();
-        loadStorageSlots();
-    }
-
-    async function loadServers() {
+// ── Login ──────────────────────────────────────────────────────────────────
+async function loadServerButtons() {
+    try {
         const res = await fetch(`${API}/servers`);
         const data = await res.json();
-        const select = document.getElementById('serverSelect');
-        select.innerHTML = data.servers.map(s =>
-            `<option value="${s.id}" ${s.id === currentServerId ? 'selected' : ''}>${s.name}</option>`
+        const container = document.getElementById('serverButtons');
+        container.innerHTML = data.servers.map(s =>
+            `<button class="btn" onclick="startLogin('${s.id}', '${s.name}')">${s.name}</button>`
         ).join('');
-        document.getElementById('statServer').textContent = currentServerName;
-    }
+    } catch { showLoginStatus('Could not reach backend.', true); }
+}
 
-    function switchServer() {
-        const select = document.getElementById('serverSelect');
-        currentServerId = select.value;
-        const opt = select.options[select.selectedIndex];
-        currentServerName = opt ? opt.text : currentServerId;
-        document.getElementById('statServer').textContent = currentServerName;
-        document.getElementById('statPlayers').textContent = '—';
-        document.getElementById('playerList').textContent = 'Loading...';
-        document.getElementById('controlStatus').textContent = '';
-        document.getElementById('activityLog').innerHTML = '';
-        lastPlayerList = {};
-        refreshPlayersWithLog(true);
-        loadActivityLog();
-        if (dashboardInterval) clearInterval(dashboardInterval);
-        dashboardInterval = setInterval(refreshPlayersWithLog, 5000);
-    }
-
-    function showPanel(name, el) {
-        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById('panel-' + name).classList.add('active');
-        if (el) el.classList.add('active');
-        document.getElementById('topbarTitle').textContent = el ? el.textContent.trim() : name;
-        if (name === 'storage') loadStorageSlots();
-    }
-
-    // ── Dashboard ──────────────────────────────────────────────────────────────
-    let lastPlayerList = {};
-
-    let dashboardInterval = null;
-
-    function startDashboard() {
-        if (dashboardInterval) clearInterval(dashboardInterval);
-        refreshPlayersWithLog();
-        dashboardInterval = setInterval(refreshPlayersWithLog, 5000);
-        document.getElementById('statVoice').textContent = 'Ready';
-    }
-
-    async function refreshPlayersWithLog(silent = false) {
-        try {
-            const res = await fetch(`${API}/players?serverId=${currentServerId}`);
-            const data = await res.json();
-            const players = data.players || {};
-            const count = Object.keys(players).length;
-            document.getElementById('statPlayers').textContent = count;
-            renderPlayerList(players);
-            if (!silent) {
-                for (const [id, name] of Object.entries(players)) {
-                    if (!lastPlayerList[id]) {
-                        addActivityLog(`🦖 ${name} joined the server`, '#4dd9c0');
-                    }
-                }
-                for (const [id, name] of Object.entries(lastPlayerList)) {
-                    if (!players[id]) {
-                        addActivityLog(`💀 ${name} left the server`, '#facc15');
-                    }
-                }
-            }
-            lastPlayerList = { ...players };
-        } catch {
-            document.getElementById('statPlayers').textContent = '—';
+async function startLogin(serverId, serverName) {
+    showLoginStatus(`Opening Steam login for ${serverName}...`, false);
+    try {
+        const startRes = await fetch(`${API}/api/auth/steam/start`);
+        if (!startRes.ok) throw new Error('Failed to start Steam auth');
+        const start = await startRes.json();
+        const code = await window.electronAPI.openSteamAuth(start.url);
+        showLoginStatus('Completing Steam login...', false);
+        const claimRes = await fetch(`${API}/api/auth/steam/claim`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code }),
+        });
+        if (!claimRes.ok) {
+            const err = await claimRes.json().catch(() => ({}));
+            throw new Error(err.error || 'Steam auth failed');
         }
-    }
+        const session = await claimRes.json();
+        currentUser = session.username;
+        currentSteamId = session.steamId;
+        currentRole = session.role;
+        currentServerId = serverId;
+        currentServerName = serverName;
+        document.getElementById('loginScreen').style.display = 'none';
+        launchView();
+    } catch (err) { showLoginStatus(err.message || 'Steam login failed', true); }
+}
 
-    async function addActivityLog(message, color = '#a0c4c0') {
+function showLoginStatus(msg, isError) {
+    const el = document.getElementById('loginStatus');
+    el.textContent = msg;
+    el.style.color = isError ? '#f87171' : '#4dd9c0';
+}
+
+// ── View Routing ───────────────────────────────────────────────────────────
+function launchView() {
+    const rank = ROLE_RANK[currentRole] || 1;
+    if (rank >= 2) { launchAdminView(); } else { launchPlayerView(); }
+}
+
+// ── Player View ────────────────────────────────────────────────────────────
+function launchPlayerView() {
+    document.title = currentServerName;
+    document.getElementById('playerScreen').style.display = 'flex';
+    document.getElementById('playerServerName').textContent = currentServerName;
+    document.getElementById('playerUserInfo').textContent = '👤 ' + currentUser;
+    refreshPlayerCount();
+    setInterval(refreshPlayerCount, 30000);
+}
+
+function switchPlayerTab(name) {
+    document.querySelectorAll('.player-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    document.getElementById('playerTab-dashboard').style.display = name === 'dashboard' ? 'flex' : 'none';
+    document.getElementById('playerTab-storage').style.display = name === 'storage' ? 'flex' : 'none';
+    document.getElementById('playerTab-map').style.display = name === 'map' ? 'flex' : 'none';
+    if (name === 'storage') loadPlayerStorageSlots();
+    if (name === 'map') initPlayerMap();
+}
+
+async function refreshPlayerCount() {
+    try {
+        const res = await fetch(`${API}/players?serverId=${currentServerId}`);
+        const data = await res.json();
+        document.getElementById('playerCount').textContent = Object.keys(data.players || {}).length;
+    } catch { document.getElementById('playerCount').textContent = '—'; }
+}
+
+// ── Admin View ─────────────────────────────────────────────────────────────
+function launchAdminView() {
+    const rank = ROLE_RANK[currentRole] || 1;
+    document.title = currentServerName + ' Admin';
+    document.getElementById('appScreen').style.display = 'flex';
+    if (rank < 2) document.querySelector('.admin-only').style.display = 'none';
+    if (rank >= 4) document.getElementById('leadAdminControls').style.display = 'block';
+    const badges = { player: '🟢 Player', trial_admin: '🔵 Trial Admin', admin: '🟡 Admin', lead_admin: '🟠 Lead Admin', owner: '🔴 Owner' };
+    document.getElementById('sidebarUser').innerHTML = `👤 ${currentUser}<br><span style="font-size:11px; color:#a0c4c0;">${badges[currentRole] || currentRole}</span>`;
+    loadServers();
+    startDashboard();
+    loadToggleStates();
+    loadActivityLog();
+    loadStorageSlots();
+}
+
+async function loadServers() {
+    const res = await fetch(`${API}/servers`);
+    const data = await res.json();
+    const select = document.getElementById('serverSelect');
+    select.innerHTML = data.servers.map(s =>
+        `<option value="${s.id}" ${s.id === currentServerId ? 'selected' : ''}>${s.name}</option>`
+    ).join('');
+    document.getElementById('statServer').textContent = currentServerName;
+}
+
+function switchServer() {
+    const select = document.getElementById('serverSelect');
+    currentServerId = select.value;
+    const opt = select.options[select.selectedIndex];
+    currentServerName = opt ? opt.text : currentServerId;
+    document.getElementById('statServer').textContent = currentServerName;
+    document.getElementById('statPlayers').textContent = '—';
+    document.getElementById('playerList').textContent = 'Loading...';
+    document.getElementById('controlStatus').textContent = '';
+    document.getElementById('activityLog').innerHTML = '';
+    lastPlayerList = {};
+    refreshPlayersWithLog(true);
+    loadActivityLog();
+    if (dashboardInterval) clearInterval(dashboardInterval);
+    dashboardInterval = setInterval(refreshPlayersWithLog, 5000);
+}
+
+function showPanel(name, el) {
+    document.querySelectorAll('.panel').forEach(p => { p.classList.remove('active'); p.style.display = ''; });
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const panel = document.getElementById('panel-' + name);
+    if (name === 'map') {
+        panel.style.display = 'flex';
+        panel.classList.add('active');
+        setTimeout(() => initAdminMap(), 50);
+    } else {
+        panel.classList.add('active');
+    }
+    if (el) el.classList.add('active');
+    document.getElementById('topbarTitle').textContent = el ? el.textContent.trim() : name;
+    if (name === 'storage') loadStorageSlots();
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────────────
+let lastPlayerList = {};
+let dashboardInterval = null;
+
+function startDashboard() {
+    if (dashboardInterval) clearInterval(dashboardInterval);
+    refreshPlayersWithLog();
+    dashboardInterval = setInterval(refreshPlayersWithLog, 5000);
+    document.getElementById('statVoice').textContent = 'Ready';
+}
+
+async function refreshPlayersWithLog(silent = false) {
+    try {
+        const res = await fetch(`${API}/players?serverId=${currentServerId}`);
+        const data = await res.json();
+        const players = data.players || {};
+        const count = Object.keys(players).length;
+        document.getElementById('statPlayers').textContent = count;
+        renderPlayerList(players);
+        if (!silent) {
+            for (const [id, name] of Object.entries(players)) {
+                if (!lastPlayerList[id]) addActivityLog(`🦖 ${name} joined the server`, '#4dd9c0');
+            }
+            for (const [id, name] of Object.entries(lastPlayerList)) {
+                if (!players[id]) addActivityLog(`💀 ${name} left the server`, '#facc15');
+            }
+        }
+        lastPlayerList = { ...players };
+    } catch { document.getElementById('statPlayers').textContent = '—'; }
+}
+
+async function addActivityLog(message, color = '#a0c4c0') {
+    const log = document.getElementById('activityLog');
+    const now = new Date();
+    const time = now.toLocaleTimeString();
+    const entry = { message, color, time };
+    const line = document.createElement('div');
+    line.style.color = color;
+    line.style.marginBottom = '4px';
+    line.textContent = `[${time}] ${message}`;
+    log.insertBefore(line, log.firstChild);
+    while (log.children.length > 100) log.removeChild(log.lastChild);
+    await fetch(`${API}/activity-log`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ entry, serverId: currentServerId }),
+    }).catch(() => {});
+}
+
+// ── Player List ────────────────────────────────────────────────────────────
+function renderPlayerList(players) {
+    const el = document.getElementById('playerList');
+    const entries = Object.entries(players);
+    if (entries.length === 0) { el.textContent = 'No players online.'; return; }
+    const rank = ROLE_RANK[currentRole] || 1;
+    el.innerHTML = entries.map(([id, name]) => `
+        <div style="padding:10px 0; border-bottom:1px solid #1e4a4a;">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                <span>🦖 ${name}</span>
+                <span style="font-size:11px; color:#a0c4c0;">${id}</span>
+            </div>
+            ${rank >= 2 ? `
+            <div style="display:flex; gap:8px; align-items:center;">
+                <input type="text" id="reason-${id}" placeholder="Reason..." style="margin-bottom:0; padding:5px; font-size:12px; flex:1;" />
+                <button class="btn small" onclick="kickPlayer('${id}', '${name}')">Kick</button>
+                ${rank >= 3 ? `<button class="btn small danger" onclick="banPlayer('${id}', '${name}')">Ban</button>` : ''}
+            </div>` : ''}
+        </div>
+    `).join('');
+}
+
+async function kickPlayer(steamId, name) {
+    const reason = document.getElementById(`reason-${steamId}`).value || 'Kicked by admin';
+    try {
+        await fetch(`${API}/kick`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId, serverId: currentServerId, reason }) });
+        refreshPlayersWithLog();
+    } catch { alert('Failed to kick player.'); }
+}
+
+async function banPlayer(steamId, name) {
+    const reason = document.getElementById(`reason-${steamId}`).value || 'Banned by admin';
+    if (!confirm(`Are you sure you want to ban ${name}?`)) return;
+    try {
+        await fetch(`${API}/ban`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId, serverId: currentServerId, reason }) });
+        refreshPlayersWithLog();
+    } catch { alert('Failed to ban player.'); }
+}
+
+// ── Controls ───────────────────────────────────────────────────────────────
+async function sendCommand(cmd) {
+    const status = document.getElementById('controlStatus');
+    status.textContent = 'Sending...';
+    try {
+        const res = await fetch(`${API}/command`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command: cmd, serverId: currentServerId }) });
+        const data = await res.json();
+        status.textContent = data.message || 'Done.';
+    } catch { status.textContent = 'Failed to send command.'; }
+}
+
+async function sendBroadcast() {
+    const msg = document.getElementById('broadcastMsg').value.trim();
+    if (!msg) return;
+    const status = document.getElementById('controlStatus');
+    status.textContent = 'Sending...';
+    try {
+        const res = await fetch(`${API}/broadcast`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: msg, serverId: currentServerId }) });
+        const data = await res.json();
+        status.textContent = data.message || 'Sent.';
+        document.getElementById('broadcastMsg').value = '';
+    } catch { status.textContent = 'Failed to send.'; }
+}
+
+async function toggleEnforcer() {
+    try {
+        const res = await fetch(`${API}/enforcer/toggle`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        const btn = document.getElementById('enforcerBtn');
+        btn.textContent = `🎙️ Voice Enforcer: ${data.enabled ? 'ON' : 'OFF'}`;
+        btn.style.background = data.enabled ? '#4dd9c0' : '';
+        document.getElementById('controlStatus').textContent = `Voice enforcer ${data.enabled ? 'enabled' : 'disabled'}.`;
+    } catch { document.getElementById('controlStatus').textContent = 'Failed to toggle enforcer.'; }
+}
+
+async function toggleSpeciesLimiter() {
+    try {
+        const res = await fetch(`${API}/species-limiter/toggle`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        const btn = document.getElementById('speciesBtn');
+        btn.textContent = `🦖 Species Limiter: ${data.enabled ? 'ON' : 'OFF'}`;
+        btn.style.background = data.enabled ? '#4dd9c0' : '';
+        document.getElementById('controlStatus').textContent = `Species limiter ${data.enabled ? 'enabled' : 'disabled'}.`;
+    } catch { document.getElementById('controlStatus').textContent = 'Failed to toggle species limiter.'; }
+}
+
+let updateNotifyEnabled = false;
+
+async function toggleUpdateNotify() {
+    updateNotifyEnabled = !updateNotifyEnabled;
+    const btn = document.getElementById('updateNotifyBtn');
+    btn.textContent = `🔄 Update Notify: ${updateNotifyEnabled ? 'ON' : 'OFF'}`;
+    btn.style.background = updateNotifyEnabled ? '#4dd9c0' : '';
+    document.getElementById('controlStatus').textContent = `Update notifications ${updateNotifyEnabled ? 'enabled' : 'disabled'}.`;
+    await fetch(`${API}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ updateNotify: updateNotifyEnabled }) }).catch(() => {});
+}
+
+async function loadToggleStates() {
+    try {
+        const [enforcerRes, speciesRes, settingsRes] = await Promise.all([fetch(`${API}/enforcer`), fetch(`${API}/species-limiter`), fetch(`${API}/settings`)]);
+        const enforcer = await enforcerRes.json();
+        const species = await speciesRes.json();
+        const settings = await settingsRes.json();
+        const enforcerBtn = document.getElementById('enforcerBtn');
+        const speciesBtn = document.getElementById('speciesBtn');
+        const updateBtn = document.getElementById('updateNotifyBtn');
+        if (enforcerBtn) { enforcerBtn.textContent = `🎙️ Voice Enforcer: ${enforcer.enabled ? 'ON' : 'OFF'}`; enforcerBtn.style.background = enforcer.enabled ? '#4dd9c0' : ''; }
+        if (speciesBtn) { speciesBtn.textContent = `🦖 Species Limiter: ${species.enabled ? 'ON' : 'OFF'}`; speciesBtn.style.background = species.enabled ? '#4dd9c0' : ''; }
+        if (updateBtn && settings.updateNotify) { updateNotifyEnabled = true; updateBtn.textContent = '🔄 Update Notify: ON'; updateBtn.style.background = '#4dd9c0'; }
+    } catch {}
+}
+
+async function loadActivityLog() {
+    try {
+        const res = await fetch(`${API}/activity-log?serverId=${currentServerId}`);
+        const entries = await res.json();
         const log = document.getElementById('activityLog');
-        const now = new Date();
-        const time = now.toLocaleTimeString();
-        const entry = { message, color, time };
-        const line = document.createElement('div');
-        line.style.color = color;
-        line.style.marginBottom = '4px';
-        line.textContent = `[${time}] ${message}`;
-        log.insertBefore(line, log.firstChild);
-        while (log.children.length > 100) log.removeChild(log.lastChild);
-        await fetch(`${API}/activity-log`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ entry, serverId: currentServerId }),
-        }).catch(() => {});
-    }
+        log.innerHTML = '';
+        for (const entry of entries) {
+            const line = document.createElement('div');
+            line.style.color = entry.color;
+            line.style.marginBottom = '4px';
+            line.textContent = `[${entry.time}] ${entry.message}`;
+            log.appendChild(line);
+        }
+    } catch {}
+}
 
-    // ── Player List ────────────────────────────────────────────────────────────
-    function renderPlayerList(players) {
-        const el = document.getElementById('playerList');
-        const entries = Object.entries(players);
-        if (entries.length === 0) { el.textContent = 'No players online.'; return; }
-        const rank = ROLE_RANK[currentRole] || 1;
-        el.innerHTML = entries.map(([id, name]) => `
-            <div style="padding:10px 0; border-bottom:1px solid #1e4a4a;">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-                    <span>🦖 ${name}</span>
-                    <span style="font-size:11px; color:#a0c4c0;">${id}</span>
+// ── Voice System ───────────────────────────────────────────────────────────
+const LivekitClient = window.LivekitClient;
+let room = null;
+let localAudioTrack = null;
+let currentRoom = '';
+let pttActive = false;
+let reshardTimer = null;
+let lkContext = null;
+let lkStream = null;
+let lkGainNode = null;
+
+async function buildAudioTrack() {
+    const constraints = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
+    lkStream = await navigator.mediaDevices.getUserMedia(constraints);
+    lkContext = new AudioContext();
+    await lkContext.resume();
+    const source = lkContext.createMediaStreamSource(lkStream);
+    lkGainNode = lkContext.createGain();
+    lkGainNode.gain.value = 1.0;
+    const dest = lkContext.createMediaStreamDestination();
+    source.connect(lkGainNode);
+    lkGainNode.connect(dest);
+    return new LivekitClient.LocalAudioTrack(dest.stream.getAudioTracks()[0], {}, false);
+}
+
+async function connectVoice(statusElId, btnElId) {
+    const status = document.getElementById(statusElId);
+    const btn = document.getElementById(btnElId);
+    status.textContent = 'Getting position...';
+    try {
+        const tokenRes = await fetch(`${API}/token`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }) });
+        const tokenData = await tokenRes.json();
+        if (!tokenRes.ok) throw new Error(tokenData.error);
+        status.textContent = 'Connecting to voice...';
+        room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
+        room.on(LivekitClient.RoomEvent.Disconnected, () => {
+            status.textContent = 'Disconnected from voice.';
+            if (btn) btn.style.display = 'block';
+            clearInterval(reshardTimer);
+            fetch(`${API}/enforcer/voice-disconnected`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }) }).catch(() => {});
+        });
+        room.on(LivekitClient.RoomEvent.ParticipantConnected, () => updateAudioMatrix());
+        room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => updateAudioMatrix());
+        room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, pub, participant) => {
+            if (track.kind === LivekitClient.Track.Kind.Audio) {
+                const el = track.attach();
+                el.id = `audio-${participant.identity}`;
+                document.body.appendChild(el);
+                updateAudioMatrix();
+            }
+        });
+        room.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track, pub, participant) => {
+            const el = document.getElementById(`audio-${participant.identity}`);
+            if (el) el.remove();
+        });
+        await room.connect(tokenData.url, tokenData.token, { autoSubscribe: true });
+        currentRoom = tokenData.room;
+        localAudioTrack = await buildAudioTrack();
+        await room.localParticipant.publishTrack(localAudioTrack);
+        localAudioTrack.mute();
+        status.textContent = `🎙️ Connected — Hold middle mouse to talk`;
+        if (btn) btn.style.display = 'none';
+        fetch(`${API}/enforcer/voice-connected`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }) }).catch(() => {});
+        reshardTimer = setInterval(() => checkReshard(statusElId), 5000);
+        window.electronAPI.onPTTDown(() => { if (localAudioTrack && !pttActive) { pttActive = true; localAudioTrack.unmute(); playPTTTone(true); } });
+        window.electronAPI.onPTTUp(() => { if (localAudioTrack && pttActive) { pttActive = false; localAudioTrack.mute(); playPTTTone(false); } });
+    } catch (err) { status.textContent = 'Voice error: ' + err.message; }
+}
+
+function playPTTTone(isOpen) {
+    try {
+        const ctx = new AudioContext();
+        const oscillator = ctx.createOscillator();
+        const gain = ctx.createGain();
+        oscillator.connect(gain);
+        gain.connect(ctx.destination);
+        oscillator.frequency.value = isOpen ? 880 : 660;
+        oscillator.type = 'sine';
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        oscillator.start(ctx.currentTime);
+        oscillator.stop(ctx.currentTime + 0.08);
+    } catch {}
+}
+
+async function checkReshard(statusElId) {
+    if (!room) return;
+    try {
+        const res = await fetch(`${API}/reshard`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }) });
+        const data = await res.json();
+        if (data.room !== currentRoom) {
+            currentRoom = data.room;
+            await room.disconnect();
+            await room.connect(data.url, data.token, { autoSubscribe: true });
+            if (localAudioTrack) { await room.localParticipant.publishTrack(localAudioTrack); if (!pttActive) localAudioTrack.mute(); }
+            updateAudioMatrix();
+            const status = document.getElementById(statusElId);
+            if (status) status.textContent = `🎙️ Connected — Hold middle mouse to talk`;
+        }
+    } catch {}
+}
+
+async function updateAudioMatrix() {
+    if (!room) return;
+    try {
+        const res = await fetch(`${API}/audio-matrix?serverId=${currentServerId}&steamId=${currentSteamId}`);
+        const data = await res.json();
+        for (const state of data.states) {
+            const el = document.getElementById(`audio-${state.steamId}`);
+            if (el) el.volume = Math.max(0, Math.min(1, state.gain));
+        }
+    } catch {}
+}
+
+async function connectVoicePlayer() { await connectVoice('voiceStatusPlayer', 'voiceBtnPlayer'); }
+async function connectVoiceAdmin() { await connectVoice('voiceStatusAdmin', 'voiceBtnAdmin'); }
+
+window.electronAPI.onUpdateAvailable(() => { addActivityLog('🔄 Update available — downloading...', '#facc15'); });
+window.electronAPI.onUpdateDownloaded(() => { addActivityLog('✅ Update downloaded — will install on next restart.', '#4dd9c0'); });
+
+// ── Admin Dino Storage ─────────────────────────────────────────────────────
+async function loadStorageSlots() {
+    try {
+        const res = await fetch(`${API}/dino-storage?steamId=${currentSteamId}&serverId=${currentServerId}`);
+        const data = await res.json();
+        const el = document.getElementById('storageSlots');
+        if (!data.slots || data.slots.length === 0) { el.textContent = 'No stored dinos yet.'; return; }
+        el.innerHTML = data.slots.map(slot => `
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #1e4a4a;">
+                <div><span>🦕 ${slot.slot}</span><span style="font-size:11px; color:#a0c4c0; margin-left:12px;">Saved: ${new Date(slot.saved).toLocaleString()}</span></div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn small" onclick="loadDino('${slot.slot}')">▶ Load</button>
+                    <button class="btn small danger" onclick="deleteDino('${slot.slot}')">🗑 Delete</button>
                 </div>
-                ${rank >= 2 ? `
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <input type="text" id="reason-${id}" placeholder="Reason..." style="margin-bottom:0; padding:5px; font-size:12px; flex:1;" />
-                    <button class="btn small" onclick="kickPlayer('${id}', '${name}')">Kick</button>
-                    ${rank >= 3 ? `<button class="btn small danger" onclick="banPlayer('${id}', '${name}')">Ban</button>` : ''}
-                </div>` : ''}
             </div>
         `).join('');
-    }
+    } catch { document.getElementById('storageSlots').textContent = 'Failed to load storage.'; }
+}
 
-    async function kickPlayer(steamId, name) {
-        const reason = document.getElementById(`reason-${steamId}`).value || 'Kicked by admin';
-        try {
-            await fetch(`${API}/kick`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId, serverId: currentServerId, reason }),
-            });
-            refreshPlayersWithLog();
-        } catch {
-            alert('Failed to kick player.');
-        }
-    }
+async function storeDino() {
+    const slotName = document.getElementById('slotNameInput').value.trim();
+    const status = document.getElementById('storageStatus');
+    if (!slotName) { status.textContent = 'Enter a slot name first.'; status.style.color = '#f87171'; return; }
+    status.textContent = 'Storing dino...'; status.style.color = '#4dd9c0';
+    try {
+        const res = await fetch(`${API}/dino-storage/store`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName, startFresh: false }) });
+        const data = await res.json();
+        if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+        status.textContent = data.message;
+        document.getElementById('slotNameInput').value = '';
+        loadStorageSlots();
+    } catch { status.style.color = '#f87171'; status.textContent = 'Failed to store dino.'; }
+}
 
-    async function banPlayer(steamId, name) {
-        const reason = document.getElementById(`reason-${steamId}`).value || 'Banned by admin';
-        if (!confirm(`Are you sure you want to ban ${name}?`)) return;
-        try {
-            await fetch(`${API}/ban`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId, serverId: currentServerId, reason }),
-            });
-            refreshPlayersWithLog();
-        } catch {
-            alert('Failed to ban player.');
-        }
-    }
+async function loadDino(slotName) {
+    const status = document.getElementById('storageStatus');
+    if (!confirm(`Load dino from slot "${slotName}"? You must be off the server for this to work.`)) return;
+    status.textContent = 'Loading dino...'; status.style.color = '#4dd9c0';
+    try {
+        const res = await fetch(`${API}/dino-storage/load`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }) });
+        const data = await res.json();
+        if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+        status.textContent = data.message;
+    } catch { status.style.color = '#f87171'; status.textContent = 'Failed to load dino.'; }
+}
 
-    // ── Controls ───────────────────────────────────────────────────────────────
-    async function sendCommand(cmd) {
-        const status = document.getElementById('controlStatus');
-        status.textContent = 'Sending...';
-        try {
-            const res = await fetch(`${API}/command`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command: cmd, serverId: currentServerId }),
-            });
-            const data = await res.json();
-            status.textContent = data.message || 'Done.';
-        } catch {
-            status.textContent = 'Failed to send command.';
-        }
-    }
+async function deleteDino(slotName) {
+    const status = document.getElementById('storageStatus');
+    if (!confirm(`Delete slot "${slotName}"? This cannot be undone.`)) return;
+    try {
+        const res = await fetch(`${API}/dino-storage/delete`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }) });
+        const data = await res.json();
+        if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+        status.textContent = data.message;
+        loadStorageSlots();
+    } catch { status.style.color = '#f87171'; status.textContent = 'Failed to delete slot.'; }
+}
 
-    async function sendBroadcast() {
-        const msg = document.getElementById('broadcastMsg').value.trim();
-        if (!msg) return;
-        const status = document.getElementById('controlStatus');
-        status.textContent = 'Sending...';
-        try {
-            const res = await fetch(`${API}/broadcast`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: msg, serverId: currentServerId }),
-            });
-            const data = await res.json();
-            status.textContent = data.message || 'Sent.';
-            document.getElementById('broadcastMsg').value = '';
-        } catch {
-            status.textContent = 'Failed to send.';
-        }
-    }
+async function startFreshPlayer() {
+    const adminStatus = document.getElementById('storageStatus');
+    const playerStatus = document.getElementById('playerStorageStatus');
+    const status = (adminStatus && document.getElementById('panel-storage') && document.getElementById('panel-storage').classList.contains('active')) ? adminStatus : playerStatus;
+    if (!confirm('Start fresh? Your current dino will be lost permanently. Any stored dinos are safe.')) return;
+    status.textContent = 'Clearing save...'; status.style.color = '#4dd9c0';
+    try {
+        const res = await fetch(`${API}/dino-storage/start-fresh`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }) });
+        const data = await res.json();
+        if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+        status.textContent = data.message;
+    } catch { status.style.color = '#f87171'; status.textContent = 'Failed to clear save.'; }
+}
 
-    async function toggleEnforcer() {
-        try {
-            const res = await fetch(`${API}/enforcer/toggle`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const data = await res.json();
-            const btn = document.getElementById('enforcerBtn');
-            btn.textContent = `🎙️ Voice Enforcer: ${data.enabled ? 'ON' : 'OFF'}`;
-            btn.style.background = data.enabled ? '#4dd9c0' : '';
-            document.getElementById('controlStatus').textContent = `Voice enforcer ${data.enabled ? 'enabled' : 'disabled'}.`;
-        } catch {
-            document.getElementById('controlStatus').textContent = 'Failed to toggle enforcer.';
-        }
-    }
-
-    async function toggleSpeciesLimiter() {
-        try {
-            const res = await fetch(`${API}/species-limiter/toggle`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const data = await res.json();
-            const btn = document.getElementById('speciesBtn');
-            btn.textContent = `🦖 Species Limiter: ${data.enabled ? 'ON' : 'OFF'}`;
-            btn.style.background = data.enabled ? '#4dd9c0' : '';
-            document.getElementById('controlStatus').textContent = `Species limiter ${data.enabled ? 'enabled' : 'disabled'}.`;
-        } catch {
-            document.getElementById('controlStatus').textContent = 'Failed to toggle species limiter.';
-        }
-    }
-
-    let updateNotifyEnabled = false;
-
-    async function toggleUpdateNotify() {
-        updateNotifyEnabled = !updateNotifyEnabled;
-        const btn = document.getElementById('updateNotifyBtn');
-        btn.textContent = `🔄 Update Notify: ${updateNotifyEnabled ? 'ON' : 'OFF'}`;
-        btn.style.background = updateNotifyEnabled ? '#4dd9c0' : '';
-        document.getElementById('controlStatus').textContent = `Update notifications ${updateNotifyEnabled ? 'enabled' : 'disabled'}.`;
-        await fetch(`${API}/settings`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ updateNotify: updateNotifyEnabled }),
-        }).catch(() => {});
-        if (updateNotifyEnabled) {
-            window.electronAPI.onUpdateAvailable(() => {
-                alert('A new update is available and is being downloaded.');
-            });
-            window.electronAPI.onUpdateDownloaded(() => {
-                if (confirm('Update downloaded. Restart now to install?')) {
-                    window.location.reload();
-                }
-            });
-        }
-    }
-
-    async function loadToggleStates() {
-        try {
-            const [enforcerRes, speciesRes, settingsRes] = await Promise.all([
-                fetch(`${API}/enforcer`),
-                fetch(`${API}/species-limiter`),
-                fetch(`${API}/settings`),
-            ]);
-            const enforcer = await enforcerRes.json();
-            const species = await speciesRes.json();
-            const settings = await settingsRes.json();
-            const enforcerBtn = document.getElementById('enforcerBtn');
-            const speciesBtn = document.getElementById('speciesBtn');
-            const updateBtn = document.getElementById('updateNotifyBtn');
-            if (enforcerBtn) {
-                enforcerBtn.textContent = `🎙️ Voice Enforcer: ${enforcer.enabled ? 'ON' : 'OFF'}`;
-                enforcerBtn.style.background = enforcer.enabled ? '#4dd9c0' : '';
-            }
-            if (speciesBtn) {
-                speciesBtn.textContent = `🦖 Species Limiter: ${species.enabled ? 'ON' : 'OFF'}`;
-                speciesBtn.style.background = species.enabled ? '#4dd9c0' : '';
-            }
-            if (updateBtn && settings.updateNotify) {
-                updateNotifyEnabled = true;
-                updateBtn.textContent = '🔄 Update Notify: ON';
-                updateBtn.style.background = '#4dd9c0';
-            }
-        } catch {}
-    }
-
-    async function loadActivityLog() {
-        try {
-            const res = await fetch(`${API}/activity-log?serverId=${currentServerId}`);
-            const entries = await res.json();
-            const log = document.getElementById('activityLog');
-            log.innerHTML = '';
-            for (const entry of entries) {
-                const line = document.createElement('div');
-                line.style.color = entry.color;
-                line.style.marginBottom = '4px';
-                line.textContent = `[${entry.time}] ${entry.message}`;
-                log.appendChild(line);
-            }
-        } catch {}
-    }
-
-    // ── Voice System ───────────────────────────────────────────────────────────
-    const LivekitClient = window.LivekitClient;
-    let room = null;
-    let localAudioTrack = null;
-    let currentRoom = '';
-    let pttActive = false;
-    let reshardTimer = null;
-    let lkContext = null;
-    let lkStream = null;
-    let lkGainNode = null;
-
-    async function buildAudioTrack() {
-        const constraints = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
-        lkStream = await navigator.mediaDevices.getUserMedia(constraints);
-        lkContext = new AudioContext();
-        await lkContext.resume();
-        const source = lkContext.createMediaStreamSource(lkStream);
-        lkGainNode = lkContext.createGain();
-        lkGainNode.gain.value = 1.0;
-        const dest = lkContext.createMediaStreamDestination();
-        source.connect(lkGainNode);
-        lkGainNode.connect(dest);
-        return new LivekitClient.LocalAudioTrack(dest.stream.getAudioTracks()[0], {}, false);
-    }
-
-    async function connectVoice(statusElId, btnElId) {
-        const status = document.getElementById(statusElId);
-        const btn = document.getElementById(btnElId);
-        status.textContent = 'Getting position...';
-        try {
-            const tokenRes = await fetch(`${API}/token`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
-            });
-            const tokenData = await tokenRes.json();
-            if (!tokenRes.ok) throw new Error(tokenData.error);
-            status.textContent = 'Connecting to voice...';
-            room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
-            room.on(LivekitClient.RoomEvent.Disconnected, () => {
-                status.textContent = 'Disconnected from voice.';
-                if (btn) btn.style.display = 'block';
-                clearInterval(reshardTimer);
-                fetch(`${API}/enforcer/voice-disconnected`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
-                }).catch(() => {});
-            });
-            room.on(LivekitClient.RoomEvent.ParticipantConnected, () => updateAudioMatrix());
-            room.on(LivekitClient.RoomEvent.ParticipantDisconnected, () => updateAudioMatrix());
-            room.on(LivekitClient.RoomEvent.TrackSubscribed, (track, pub, participant) => {
-                if (track.kind === LivekitClient.Track.Kind.Audio) {
-                    const el = track.attach();
-                    el.id = `audio-${participant.identity}`;
-                    document.body.appendChild(el);
-                    updateAudioMatrix();
-                }
-            });
-            room.on(LivekitClient.RoomEvent.TrackUnsubscribed, (track, pub, participant) => {
-                const el = document.getElementById(`audio-${participant.identity}`);
-                if (el) el.remove();
-            });
-            await room.connect(tokenData.url, tokenData.token, { autoSubscribe: true });
-            currentRoom = tokenData.room;
-            localAudioTrack = await buildAudioTrack();
-            await room.localParticipant.publishTrack(localAudioTrack);
-            localAudioTrack.mute();
-            status.textContent = `🎙️ Connected — Hold middle mouse to talk`;
-            if (btn) btn.style.display = 'none';
-            fetch(`${API}/enforcer/voice-connected`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
-            }).catch(() => {});
-            reshardTimer = setInterval(() => checkReshard(statusElId), 5000);
-            window.electronAPI.onPTTDown(() => {
-                if (localAudioTrack && !pttActive) {
-                    pttActive = true;
-                    localAudioTrack.unmute();
-                    playPTTTone(true);
-                }
-            });
-            window.electronAPI.onPTTUp(() => {
-                if (localAudioTrack && pttActive) {
-                    pttActive = false;
-                    localAudioTrack.mute();
-                    playPTTTone(false);
-                }
-            });
-        } catch (err) {
-            status.textContent = 'Voice error: ' + err.message;
-        }
-    }
-
-    function playPTTTone(isOpen) {
-        try {
-            const ctx = new AudioContext();
-            const oscillator = ctx.createOscillator();
-            const gain = ctx.createGain();
-            oscillator.connect(gain);
-            gain.connect(ctx.destination);
-            oscillator.frequency.value = isOpen ? 880 : 660;
-            oscillator.type = 'sine';
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-            oscillator.start(ctx.currentTime);
-            oscillator.stop(ctx.currentTime + 0.08);
-        } catch {}
-    }
-
-    async function checkReshard(statusElId) {
-        if (!room) return;
-        try {
-            const res = await fetch(`${API}/reshard`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
-            });
-            const data = await res.json();
-            if (data.room !== currentRoom) {
-                currentRoom = data.room;
-                await room.disconnect();
-                await room.connect(data.url, data.token, { autoSubscribe: true });
-                if (localAudioTrack) {
-                    await room.localParticipant.publishTrack(localAudioTrack);
-                    if (!pttActive) localAudioTrack.mute();
-                }
-                updateAudioMatrix();
-                const status = document.getElementById(statusElId);
-                if (status) status.textContent = `🎙️ Connected — Hold middle mouse to talk`;
-            }
-        } catch {}
-    }
-
-    async function updateAudioMatrix() {
-        if (!room) return;
-        try {
-            const res = await fetch(`${API}/audio-matrix?serverId=${currentServerId}&steamId=${currentSteamId}`);
-            const data = await res.json();
-            for (const state of data.states) {
-                const el = document.getElementById(`audio-${state.steamId}`);
-                if (el) el.volume = Math.max(0, Math.min(1, state.gain));
-            }
-        } catch {}
-    }
-
-    async function connectVoicePlayer() {
-        await connectVoice('voiceStatusPlayer', 'voiceBtnPlayer');
-    }
-
-    async function connectVoiceAdmin() {
-        await connectVoice('voiceStatusAdmin', 'voiceBtnAdmin');
-    }
-
-    window.electronAPI.onUpdateAvailable(() => {
-        addActivityLog('🔄 Update available — downloading...', '#facc15');
-    });
-    window.electronAPI.onUpdateDownloaded(() => {
-        addActivityLog('✅ Update downloaded — will install on next restart.', '#4dd9c0');
-    });
-
-    // ── Admin Dino Storage ─────────────────────────────────────────────────────
-    async function loadStorageSlots() {
-        try {
-            const res = await fetch(`${API}/dino-storage?steamId=${currentSteamId}&serverId=${currentServerId}`);
-            const data = await res.json();
-            const el = document.getElementById('storageSlots');
-            if (!data.slots || data.slots.length === 0) {
-                el.textContent = 'No stored dinos yet.';
-                return;
-            }
-            el.innerHTML = data.slots.map(slot => `
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #1e4a4a;">
-                    <div>
-                        <span>🦕 ${slot.slot}</span>
-                        <span style="font-size:11px; color:#a0c4c0; margin-left:12px;">Saved: ${new Date(slot.saved).toLocaleString()}</span>
-                    </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn small" onclick="loadDino('${slot.slot}')">▶ Load</button>
-                        <button class="btn small danger" onclick="deleteDino('${slot.slot}')">🗑 Delete</button>
-                    </div>
+// ── Player Dino Storage ────────────────────────────────────────────────────
+async function loadPlayerStorageSlots() {
+    try {
+        const res = await fetch(`${API}/dino-storage?steamId=${currentSteamId}&serverId=${currentServerId}`);
+        const data = await res.json();
+        const el = document.getElementById('playerStorageSlots');
+        if (!data.slots || data.slots.length === 0) { el.textContent = 'No stored dinos yet.'; return; }
+        el.innerHTML = data.slots.map(slot => `
+            <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1e4a4a;">
+                <span>🦕 ${slot.slot}</span>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn small" onclick="loadDinoPlayer('${slot.slot}')">▶ Load</button>
+                    <button class="btn small danger" onclick="deleteDinoPlayer('${slot.slot}')">🗑</button>
                 </div>
-            `).join('');
-        } catch {
-            document.getElementById('storageSlots').textContent = 'Failed to load storage.';
-        }
-    }
+            </div>
+        `).join('');
+    } catch { document.getElementById('playerStorageSlots').textContent = 'Failed to load storage.'; }
+}
 
-    async function storeDino() {
-        const slotName = document.getElementById('slotNameInput').value.trim();
-        const status = document.getElementById('storageStatus');
-        if (!slotName) { status.textContent = 'Enter a slot name first.'; status.style.color = '#f87171'; return; }
-        status.textContent = 'Storing dino...';
-        status.style.color = '#4dd9c0';
-        try {
-            const res = await fetch(`${API}/dino-storage/store`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName, startFresh: false }),
-            });
-            const data = await res.json();
-            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
-            status.textContent = data.message;
-            document.getElementById('slotNameInput').value = '';
-            loadStorageSlots();
-        } catch {
-            status.style.color = '#f87171';
-            status.textContent = 'Failed to store dino.';
-        }
-    }
+async function storeDinoPlayer() {
+    const slotName = document.getElementById('playerSlotNameInput').value.trim();
+    const status = document.getElementById('playerStorageStatus');
+    if (!slotName) { status.textContent = 'Enter a slot name first.'; status.style.color = '#f87171'; return; }
+    status.textContent = 'Storing dino...'; status.style.color = '#4dd9c0';
+    try {
+        const res = await fetch(`${API}/dino-storage/store`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName, startFresh: false }) });
+        const data = await res.json();
+        if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+        status.textContent = data.message;
+        document.getElementById('playerSlotNameInput').value = '';
+        loadPlayerStorageSlots();
+    } catch { status.style.color = '#f87171'; status.textContent = 'Failed to store dino.'; }
+}
 
-    async function loadDino(slotName) {
-        const status = document.getElementById('storageStatus');
-        if (!confirm(`Load dino from slot "${slotName}"? You must be off the server for this to work.`)) return;
-        status.textContent = 'Loading dino...';
-        status.style.color = '#4dd9c0';
-        try {
-            const res = await fetch(`${API}/dino-storage/load`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }),
-            });
-            const data = await res.json();
-            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
-            status.textContent = data.message;
-        } catch {
-            status.style.color = '#f87171';
-            status.textContent = 'Failed to load dino.';
-        }
-    }
+async function loadDinoPlayer(slotName) {
+    const status = document.getElementById('playerStorageStatus');
+    if (!confirm(`Load dino from slot "${slotName}"? You must be off the server.`)) return;
+    status.textContent = 'Loading dino...'; status.style.color = '#4dd9c0';
+    try {
+        const res = await fetch(`${API}/dino-storage/load`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }) });
+        const data = await res.json();
+        if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+        status.textContent = data.message;
+    } catch { status.style.color = '#f87171'; status.textContent = 'Failed to load dino.'; }
+}
 
-    async function deleteDino(slotName) {
-        const status = document.getElementById('storageStatus');
-        if (!confirm(`Delete slot "${slotName}"? This cannot be undone.`)) return;
-        try {
-            const res = await fetch(`${API}/dino-storage/delete`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }),
-            });
-            const data = await res.json();
-            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
-            status.textContent = data.message;
-            loadStorageSlots();
-        } catch {
-            status.style.color = '#f87171';
-            status.textContent = 'Failed to delete slot.';
-        }
-    }
+async function deleteDinoPlayer(slotName) {
+    const status = document.getElementById('playerStorageStatus');
+    if (!confirm(`Delete slot "${slotName}"? This cannot be undone.`)) return;
+    try {
+        const res = await fetch(`${API}/dino-storage/delete`, { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }) });
+        const data = await res.json();
+        if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
+        status.textContent = data.message;
+        loadPlayerStorageSlots();
+    } catch { status.style.color = '#f87171'; status.textContent = 'Failed to delete slot.'; }
+}
 
-    async function startFreshPlayer() {
-        const adminStatus = document.getElementById('storageStatus');
-        const playerStatus = document.getElementById('playerStorageStatus');
-        const status = (adminStatus && document.getElementById('panel-storage') &&         document.getElementById('panel-storage').classList.contains('active')) ? adminStatus : playerStatus;
-        if (!confirm('Start fresh? Your current dino will be lost permanently. Any stored dinos are safe.')) return;
-        status.textContent = 'Clearing save...';
-        status.style.color = '#4dd9c0';
-        try {
-            const res = await fetch(`${API}/dino-storage/start-fresh`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }),
-            });
-            const data = await res.json();
-            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
-            status.textContent = data.message;
-        } catch {
-            status.style.color = '#f87171';
-            status.textContent = 'Failed to clear save.';
-        }
-    }
+// ══════════════════════════════════════════════════════════════════════════════
+// ── MAP ENGINE ────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
 
-    // ── Player Dino Storage ────────────────────────────────────────────────────
-    async function loadPlayerStorageSlots() {
-        try {
-            const res = await fetch(`${API}/dino-storage?steamId=${currentSteamId}&serverId=${currentServerId}`);
-            const data = await res.json();
-            const el = document.getElementById('playerStorageSlots');
-            if (!data.slots || data.slots.length === 0) {
-                el.textContent = 'No stored dinos yet.';
-                return;
-            }
-            el.innerHTML = data.slots.map(slot => `
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1e4a4a;">
-                    <span>🦕 ${slot.slot}</span>
-                    <div style="display:flex; gap:6px;">
-                        <button class="btn small" onclick="loadDinoPlayer('${slot.slot}')">▶ Load</button>
-                        <button class="btn small danger" onclick="deleteDinoPlayer('${slot.slot}')">🗑</button>
-                    </div>
-                </div>
-            `).join('');
-        } catch {
-            document.getElementById('playerStorageSlots').textContent = 'Failed to load storage.';
-        }
-    }
+// Coordinate system: lat/lng -600 to +600, image 1000x1000
+const MAP_IMG_SIZE = 1000;
+const MAP_MIN = -600;
+const MAP_MAX = 600;
+const MAP_RANGE = 1200;
 
-    async function storeDinoPlayer() {
-        const slotName = document.getElementById('playerSlotNameInput').value.trim();
-        const status = document.getElementById('playerStorageStatus');
-        if (!slotName) { status.textContent = 'Enter a slot name first.'; status.style.color = '#f87171'; return; }
-        status.textContent = 'Storing dino...';
-        status.style.color = '#4dd9c0';
-        try {
-            const res = await fetch(`${API}/dino-storage/store`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName, startFresh: false }),
-            });
-            const data = await res.json();
-            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
-            status.textContent = data.message;
-            document.getElementById('playerSlotNameInput').value = '';
-            loadPlayerStorageSlots();
-        } catch {
-            status.style.color = '#f87171';
-            status.textContent = 'Failed to store dino.';
-        }
-    }
+function worldToCanvas(lat, lng, offsetX, offsetY, scale) {
+    const px = ((lng - MAP_MIN) / MAP_RANGE) * MAP_IMG_SIZE;
+    const py = ((MAP_MAX - lat) / MAP_RANGE) * MAP_IMG_SIZE;
+    return { x: offsetX + px * scale, y: offsetY + py * scale };
+}
 
-    async function loadDinoPlayer(slotName) {
-        const status = document.getElementById('playerStorageStatus');
-        if (!confirm(`Load dino from slot "${slotName}"? You must be off the server.`)) return;
-        status.textContent = 'Loading dino...';
-        status.style.color = '#4dd9c0';
-        try {
-            const res = await fetch(`${API}/dino-storage/load`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }),
-            });
-            const data = await res.json();
-            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
-            status.textContent = data.message;
-        } catch {
-            status.style.color = '#f87171';
-            status.textContent = 'Failed to load dino.';
-        }
-    }
+function canvasToWorld(cx, cy, offsetX, offsetY, scale) {
+    const px = (cx - offsetX) / scale;
+    const py = (cy - offsetY) / scale;
+    const lng = (px / MAP_IMG_SIZE) * MAP_RANGE + MAP_MIN;
+    const lat = MAP_MAX - (py / MAP_IMG_SIZE) * MAP_RANGE;
+    return { lat: Math.round(lat * 10) / 10, lng: Math.round(lng * 10) / 10 };
+}
 
-    async function deleteDinoPlayer(slotName) {
-        const status = document.getElementById('playerStorageStatus');
-        if (!confirm(`Delete slot "${slotName}"? This cannot be undone.`)) return;
-        try {
-            const res = await fetch(`${API}/dino-storage/delete`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }),
-            });
-            const data = await res.json();
-            if (!res.ok) { status.style.color = '#f87171'; status.textContent = data.error; return; }
-            status.textContent = data.message;
-            loadPlayerStorageSlots();
-        } catch {
-            status.style.color = '#f87171';
-            status.textContent = 'Failed to delete slot.';
-        }
-    }
+// ── Map Data ──────────────────────────────────────────────────────────────────
+const AI_FOOD_TYPES = ['AI_Boar.png','AI_Deer.png','AI_Rabbit.png','AI_Chicken.png','AI_Goat.png','AI_Bullfrog.png','AI_Seaturtle.png'];
 
-</script>
-</body>
-</html>
+const MAP_DATA = {
+    landmarks: [
+        { lat: 104, lng: -43, name: "Central Dome" },
+        { lat: -294, lng: 64, name: "Dam" },
+        { lat: 144, lng: 243, name: "Estuary Weir" },
+        { lat: -199, lng: 10, name: "Highland Bridge" },
+        { lat: 237, lng: -204, name: "Lagoon" },
+        { lat: -217, lng: 356, name: "Log Bridge" },
+        { lat: -53, lng: 236, name: "Mad Grotto" },
+        { lat: 191, lng: 47, name: "Pipes" },
+        { lat: -224, lng: 545, name: "Radio Tower" },
+        { lat: 270, lng: 215, name: "Shallows Beach" },
+        { lat: 138, lng: 118, name: "Swamp Tunnel" },
+        { lat: -118, lng: -229, name: "Twin Bridges" },
+        { lat: -268, lng: 250, name: "Volcano" },
+        { lat: -425, lng: 197, name: "Site C14" },
+        { lat: -336, lng: 242, name: "Site E15" },
+        { lat: -253, lng: 40, name: "Site F11" },
+        { lat: -109, lng: 81, name: "Site I12" },
+        { lat: 30, lng: 253, name: "Site K15" },
+    ],
+    sanctuaries: [
+        { name: "Delta", lat: -18, lng: 228, rx: 11, ry: 11, rotDeg: 0 },
+        { name: "EastLake", lat: -173, lng: 436, rx: 8, ry: 11, rotDeg: -9 },
+        { name: "Highland", lat: -60, lng: -154, rx: 8, ry: 8, rotDeg: 0 },
+        { name: "Mudflats", lat: 171, lng: -329, rx: 10, ry: 8, rotDeg: 0 },
+        { name: "South", lat: 229, lng: -176, rx: 7, ry: 10, rotDeg: -20 },
+        { name: "Swamp", lat: 282, lng: 28, rx: 10, ry: 8, rotDeg: 16 },
+        { name: "Verdant", lat: -272, lng: 182, rx: 8, ry: 8, rotDeg: 0 },
+    ],
+    migrations: [
+        { name: "Delta", kind: "ellipse", lat: 29, lng: 184, rx: 92, ry: 55, rotDeg: 45 },
+        { name: "East", kind: "ellipse", lat: -22, lng: 294, rx: 45, ry: 60, rotDeg: -5 },
+        { name: "Mudflats", kind: "ellipse", lat: 155, lng: -290, rx: 55, ry: 70, rotDeg: 5 },
+        { name: "North", kind: "ellipse", lat: -358, lng: 354, rx: 55, ry: 77, rotDeg: -30 },
+        { name: "Northern", kind: "ellipse", lat: -336, lng: 180, rx: 50, ry: 65, rotDeg: 13 },
+        { name: "South", kind: "ellipse", lat: 271, lng: -283, rx: 110, ry: 44, rotDeg: 46 },
+        { name: "Swamp", kind: "ellipse", lat: 295, lng: 60, rx: 80, ry: 65, rotDeg: 0 },
+        { name: "Tide", kind: "ellipse", lat: -40, lng: 451, rx: 44, ry: 45, rotDeg: 0 },
+        { name: "West", kind: "ellipse", lat: 30, lng: -252, rx: 50, ry: 45, rotDeg: 45 },
+        { name: "Highland", kind: "polygon", points: [
+            {lat:-149,lng:-39},{lat:-153,lng:-12},{lat:-119,lng:21},{lat:-85,lng:-2},
+            {lat:-70,lng:-26},{lat:-79,lng:-86},{lat:-56,lng:-102},{lat:-35,lng:-78},
+            {lat:-9,lng:-122},{lat:-61,lng:-164},{lat:-149,lng:-39}
+        ]},
+    ],
+    water: [
+        { name: "Cascades", lat: -186, lng: 182 },
+        { name: "Coastal Pond", lat: 50, lng: 330 },
+        { name: "Dam Lake", lat: -267, lng: 79 },
+        { name: "Delta", lat: 43, lng: 189 },
+        { name: "Delta River", lat: -84, lng: 254 },
+        { name: "East Lake", lat: -130, lng: 460 },
+        { name: "Forks Pond", lat: -179, lng: 238 },
+        { name: "Gorge River", lat: 135, lng: -198 },
+        { name: "Highland Lake N", lat: -135, lng: -22 },
+        { name: "Highland Lake S", lat: -92, lng: -65 },
+        { name: "Hollow Falls", lat: -171, lng: 344 },
+        { name: "Jungle Pond", lat: -2, lng: 82 },
+        { name: "Landslid Lake", lat: -80, lng: -226 },
+        { name: "North Lake", lat: -374, lng: 324 },
+        { name: "Pit Pond", lat: 281, lng: -332 },
+        { name: "Plains River", lat: -290, lng: 368 },
+        { name: "Rock Pond", lat: 319, lng: -252 },
+        { name: "Endorheic", lat: 199, lng: 179 },
+        { name: "South Puddle", lat: 200, lng: -352 },
+        { name: "Swamp East", lat: 254, lng: 106 },
+        { name: "Swamp West", lat: 276, lng: -30 },
+        { name: "Verdant Pond", lat: -255, lng: 167 },
+        { name: "West Pond", lat: 20, lng: -277 },
+        { name: "Pygmy's Puddle", lat: 82, lng: -244 },
+        { name: "Shade Puddle", lat: 90, lng: -128 },
+    ],
+    areas: [
+        { name: "Delta", lat: 33, lng: 177 },
+        { name: "East Coast", lat: -97, lng: 538 },
+        { name: "Eastern Jungle", lat: -136, lng: 416 },
+        { name: "Highland", lat: -61, lng: -71 },
+        { name: "Central Jungle", lat: -96, lng: 125 },
+        { name: "North Plains", lat: -345, lng: 353 },
+        { name: "Northern Jungle", lat: -336, lng: 148 },
+        { name: "Ridges", lat: -257, lng: -156 },
+        { name: "South Plains", lat: 185, lng: -182 },
+        { name: "Swamps", lat: 302, lng: 51 },
+        { name: "The Pit", lat: 308, lng: -316 },
+        { name: "West Rail", lat: -4, lng: -238 },
+        { name: "Water Access", lat: -214, lng: 87 },
+    ],
+    salt: [
+        {lat:-438,lng:230},{lat:-325,lng:234},{lat:-270,lng:366},{lat:-252,lng:543},
+        {lat:-234,lng:52},{lat:-205,lng:421},{lat:-180,lng:157},{lat:-145,lng:319},
+        {lat:-114,lng:-153},{lat:-61,lng:-21},{lat:-55,lng:160},{lat:-51,lng:457},
+        {lat:-25,lng:-302},{lat:40,lng:-91},{lat:59,lng:278},{lat:73.7,lng:55.7},
+        {lat:126,lng:-285},{lat:141,lng:384},{lat:178,lng:122},{lat:288,lng:13},
+        {lat:309,lng:24},{lat:404,lng:34},
+    ],
+    gastro: [
+        {lat:-446,lng:462},{lat:-432,lng:430},{lat:-424,lng:317},{lat:-392,lng:319},
+        {lat:-387,lng:194},{lat:-385,lng:328},{lat:-372,lng:229},{lat:-362,lng:347},
+        {lat:-350,lng:356},{lat:-344,lng:364},{lat:-333,lng:295},{lat:-327,lng:373},
+        {lat:-316,lng:312},{lat:-303,lng:227},{lat:-302,lng:474},{lat:-290,lng:490},
+        {lat:-289,lng:84},{lat:-289,lng:288},{lat:-288,lng:61},{lat:-281,lng:492},
+        {lat:-280,lng:185},{lat:-276,lng:193},{lat:-265,lng:210},{lat:-252,lng:-116},
+        {lat:-252,lng:290},{lat:-249,lng:544},{lat:-241,lng:116},{lat:-236,lng:315},
+        {lat:-229,lng:14},{lat:-227,lng:222},{lat:-225,lng:306},{lat:-224,lng:-14},
+        {lat:-209,lng:531},{lat:-208,lng:-12},{lat:-205,lng:265},{lat:-201,lng:-6},
+        {lat:-199,lng:509},{lat:-197,lng:-170},{lat:-195,lng:450},{lat:-180,lng:-6},
+        {lat:-172,lng:427},{lat:-170,lng:258},{lat:-168,lng:178},{lat:-166,lng:-1},
+        {lat:-165,lng:-49},{lat:-161,lng:359},{lat:-158,lng:-2},{lat:-156,lng:-39},
+        {lat:-156,lng:281},{lat:-154,lng:531},{lat:-153,lng:295},{lat:-149,lng:-66},
+        {lat:-149,lng:-35},{lat:-149,lng:274},{lat:-149,lng:467},{lat:-147,lng:-7},
+        {lat:-145,lng:-39},{lat:-141,lng:-169},{lat:-127,lng:-188},{lat:-124,lng:4},
+        {lat:-122,lng:316},{lat:-120,lng:-46},{lat:-107,lng:-229},{lat:-106,lng:-258},
+        {lat:-106,lng:511},{lat:-103,lng:271},{lat:-102,lng:310},{lat:-96,lng:209},
+        {lat:-96,lng:218},{lat:-93,lng:-3},{lat:-85,lng:110},{lat:-75,lng:-14},
+        {lat:-74,lng:505},{lat:-73,lng:270},{lat:-72,lng:-133},{lat:-71,lng:434},
+        {lat:-69,lng:2},{lat:-64,lng:-167},{lat:-62,lng:219},{lat:-62,lng:440},
+        {lat:-59,lng:-129},{lat:-59,lng:191},{lat:-58,lng:-98},{lat:-55,lng:-93},
+        {lat:-51,lng:-159},{lat:-51,lng:434},{lat:-48,lng:198},{lat:-48,lng:454},
+        {lat:-47,lng:224},{lat:-31,lng:215},{lat:-27,lng:226},{lat:-23,lng:147},
+        {lat:-12,lng:152},{lat:-8,lng:195},{lat:0,lng:0},{lat:0,lng:344},
+        {lat:3,lng:-361},{lat:7,lng:416},{lat:8,lng:215},{lat:9,lng:-283},
+        {lat:10,lng:208},{lat:11,lng:-270},{lat:13,lng:275},{lat:22,lng:178},
+        {lat:38,lng:-57},{lat:40,lng:137},{lat:42,lng:-66},{lat:57,lng:145},
+        {lat:68,lng:222},{lat:70,lng:230},{lat:72,lng:154},{lat:79,lng:322},
+        {lat:80,lng:147},{lat:81,lng:225},{lat:83,lng:184},{lat:101,lng:219},
+        {lat:107,lng:201},{lat:122,lng:237},{lat:155,lng:-321},{lat:164,lng:-386},
+        {lat:171,lng:-321},{lat:175,lng:167},{lat:176,lng:-393},{lat:177,lng:-203},
+        {lat:180,lng:-393},{lat:182,lng:-393},{lat:184,lng:85},{lat:184,lng:127},
+        {lat:194,lng:-185},{lat:198,lng:53},{lat:198,lng:131},{lat:215,lng:-259},
+        {lat:216,lng:72},{lat:221,lng:-396},{lat:232,lng:-172},{lat:236,lng:60},
+        {lat:239,lng:-397},{lat:251,lng:-183},{lat:254,lng:-156},{lat:255,lng:-395},
+        {lat:257,lng:56},{lat:262,lng:-187},{lat:272,lng:-65},{lat:274,lng:-176},
+        {lat:279,lng:104},{lat:280,lng:-157},{lat:285,lng:30},{lat:292,lng:-110},
+        {lat:293,lng:-400},{lat:300,lng:116},{lat:301,lng:41},{lat:307,lng:-139},
+        {lat:327,lng:-30},{lat:335,lng:-146},{lat:337,lng:-146},{lat:343,lng:170},
+        {lat:348,lng:-369},{lat:348,lng:177},{lat:349,lng:175},{lat:350,lng:-178},
+        {lat:350,lng:166},{lat:356,lng:172},{lat:361,lng:-342},{lat:365,lng:-261},
+        {lat:367,lng:-187},{lat:368,lng:-275},{lat:369,lng:70},{lat:370,lng:-283},
+        {lat:370,lng:111},{lat:371,lng:-295},{lat:374,lng:29},{lat:375,lng:30},
+        {lat:381,lng:-56},{lat:384,lng:-221},{lat:394,lng:87},{lat:396,lng:-252},
+    ],
+    food: [
+        {lat:283.6,lng:-300.2,name:"Deer"},{lat:-137.9,lng:-185.5,name:"Deer"},
+        {lat:-167.6,lng:17.7,name:"Deer"},{lat:-148.6,lng:270,name:"Deer"},
+        {lat:67.9,lng:-290,name:"Gallimimus"},{lat:-58.8,lng:-132.8,name:"Gallimimus"},
+        {lat:-120.6,lng:-53,name:"Boar"},{lat:-128.8,lng:274,name:"Boar"},
+        {lat:-115.3,lng:243.9,name:"Rabbit"},{lat:-106.5,lng:322.3,name:"Rabbit"},
+        {lat:244.7,lng:-222,name:"Rabbit"},
+        {lat:237.4,lng:-180,name:"Chicken"},{lat:-133.1,lng:255.4,name:"Chicken"},
+        {lat:-65.4,lng:-104.7,name:"Goat"},{lat:-110.8,lng:332.5,name:"Goat"},
+        {lat:-87.7,lng:236,name:"Bullfrog"},
+        {lat:242.3,lng:-197.8,name:"Sea Turtle"},
+    ],
+};
+
+// ── Map State ─────────────────────────────────────────────────────────────────
+let mapState = null;
+let playerMapState = null;
+
+function createMapState(canvasId, containerId, isAdmin) {
+    const canvas = document.getElementById(canvasId);
+    const container = document.getElementById(containerId);
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.src = '../assets/map/gateway.png';
+
+    const state = {
+        canvas, container, ctx, img, isAdmin,
+        scale: 0.7, offsetX: 0, offsetY: 0,
+        dragging: false, lastX: 0, lastY: 0,
+        layers: { sanctuary: true, migration: true, patrol: false, water: true, landmark: true, salt: true, gastro: false, food: true, area: true, players: true },
+        playerPositions: {},
+        tooltipItems: [],
+    };
+
+    img.onload = () => {
+        fitMap(state);
+        drawMap(state);
+    };
+
+    canvas.addEventListener('mousedown', e => { state.dragging = true; state.lastX = e.clientX; state.lastY = e.clientY; });
+    canvas.addEventListener('mousemove', e => {
+        if (state.dragging) {
+            state.offsetX += e.clientX - state.lastX;
+            state.offsetY += e.clientY - state.lastY;
+            state.lastX = e.clientX;
+            state.lastY = e.clientY;
+            drawMap(state);
+        }
+        const rect = canvas.getBoundingClientRect();
+        const w = canvasToWorld(e.clientX - rect.left, e.clientY - rect.top, state.offsetX, state.offsetY, state.scale);
+        const coordEl = document.getElementById(isAdmin ? 'mapCoords' : 'playerMapCoords');
+        if (coordEl) coordEl.textContent = `Lat: ${w.lat.toFixed(1)}  Lng: ${w.lng.toFixed(1)}`;
+        handleTooltip(e, state);
+    });
+    canvas.addEventListener('mouseup', () => { state.dragging = false; });
+    canvas.addEventListener('mouseleave', () => { state.dragging = false; hideTooltip(); });
+    canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const factor = e.deltaY < 0 ? 1.1 : 0.9;
+        state.offsetX = mx - (mx - state.offsetX) * factor;
+        state.offsetY = my - (my - state.offsetY) * factor;
+        state.scale *= factor;
+        state.scale = Math.max(0.3, Math.min(8, state.scale));
+        drawMap(state);
+    }, { passive: false });
+
+    return state;
+}
+
+function fitMap(state) {
+    const w = state.container.clientWidth;
+    const h = state.container.clientHeight;
+    state.scale = Math.min(w, h) / MAP_IMG_SIZE * 0.95;
+    state.offsetX = (w - MAP_IMG_SIZE * state.scale) / 2;
+    state.offsetY = (h - MAP_IMG_SIZE * state.scale) / 2;
+}
+
+function resizeCanvas(state) {
+    state.canvas.width = state.container.clientWidth;
+    state.canvas.height = state.container.clientHeight;
+}
+
+function drawEllipse(ctx, cx, cy, rx, ry, rotDeg, fillStyle, strokeStyle, lineWidth) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((rotDeg * Math.PI) / 180);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+    if (fillStyle) { ctx.fillStyle = fillStyle; ctx.fill(); }
+    if (strokeStyle) { ctx.strokeStyle = strokeStyle; ctx.lineWidth = lineWidth || 1; ctx.stroke(); }
+    ctx.restore();
+}
+
+function drawMap(state) {
+    resizeCanvas(state);
+    const { ctx, canvas, img, offsetX, offsetY, scale, layers, isAdmin, playerPositions } = state;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw base map
+    ctx.drawImage(img, offsetX, offsetY, MAP_IMG_SIZE * scale, MAP_IMG_SIZE * scale);
+
+    const wp = (lat, lng)
