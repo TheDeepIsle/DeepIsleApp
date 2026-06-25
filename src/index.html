@@ -844,8 +844,9 @@
     }
 
     async function startFreshPlayer() {
-        const statusId = document.getElementById('playerStorageStatus') ? 'playerStorageStatus' : 'storageStatus';
-        const status = document.getElementById(statusId);
+        const adminStatus = document.getElementById('storageStatus');
+        const playerStatus = document.getElementById('playerStorageStatus');
+        const status = (adminStatus && document.getElementById('panel-storage') &&         document.getElementById('panel-storage').classList.contains('active')) ? adminStatus : playerStatus;
         if (!confirm('Start fresh? Your current dino will be lost permanently. Any stored dinos are safe.')) return;
         status.textContent = 'Clearing save...';
         status.style.color = '#4dd9c0';
