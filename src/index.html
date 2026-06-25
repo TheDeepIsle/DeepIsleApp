@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <script src="../node_modules/livekit-client/dist/livekit-client.umd.js"></script>
@@ -46,7 +46,7 @@
         .stat-card .value { font-size: 28px; font-weight: bold; color: #4dd9c0; }
         .log-box { background: #091818; border: 1px solid #1e4a4a; border-radius: 8px; padding: 14px; font-size: 12px; font-family: monospace; height: 200px; overflow-y: auto; color: #a0c4c0; }
 
-        /* ── Map Styles ── */
+        /* â”€â”€ Map Styles â”€â”€ */
         #mapPanel { display: none; flex-direction: column; height: 100%; }
         #mapPanel.active { display: flex; }
         #mapContainer { position: relative; flex: 1; overflow: hidden; background: #05121a; cursor: grab; user-select: none; }
@@ -85,19 +85,19 @@
 <!-- PLAYER VIEW -->
 <div id="playerScreen" style="display:none; flex-direction:column; height:100vh;">
     <div style="background:#091818; border-bottom:1px solid #1e4a4a; display:flex;">
-        <div class="player-tab active" id="tab-dashboard" onclick="switchPlayerTab('dashboard')">🏠 Dashboard</div>
-        <div class="player-tab" id="tab-storage" onclick="switchPlayerTab('storage')">🦕 Dino Storage</div>
-        <div class="player-tab" id="tab-map" onclick="switchPlayerTab('map')">🗺️ Map</div>
+        <div class="player-tab active" id="tab-dashboard" onclick="switchPlayerTab('dashboard')">ðŸ  Dashboard</div>
+        <div class="player-tab" id="tab-storage" onclick="switchPlayerTab('storage')">ðŸ¦• Dino Storage</div>
+        <div class="player-tab" id="tab-map" onclick="switchPlayerTab('map')">ðŸ—ºï¸ Map</div>
     </div>
 
     <!-- Dashboard Tab -->
     <div id="playerTab-dashboard" style="display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:24px;">
         <div class="player-card">
-            <h2 id="playerServerName">—</h2>
-            <div class="status">● Online</div>
-            <div class="count" id="playerCount">—</div>
+            <h2 id="playerServerName">â€”</h2>
+            <div class="status">â— Online</div>
+            <div class="count" id="playerCount">â€”</div>
             <div class="count-label">Players Online</div>
-            <button class="btn" id="voiceBtnPlayer" onclick="connectVoicePlayer()">🎙️ Join Voice</button>
+            <button class="btn" id="voiceBtnPlayer" onclick="connectVoicePlayer()">ðŸŽ™ï¸ Join Voice</button>
             <div id="voiceStatusPlayer" style="font-size:13px; color:#4dd9c0; margin-top:10px;"></div>
             <div class="user" id="playerUserInfo"></div>
         </div>
@@ -106,13 +106,13 @@
     <!-- Dino Storage Tab -->
     <div id="playerTab-storage" style="display:none; flex:1; flex-direction:column; align-items:center; justify-content:flex-start; padding:32px; overflow-y:auto;">
         <div style="width:100%; max-width:500px;">
-            <h2 style="color:#4dd9c0; margin-bottom:8px;">🦕 Dino Storage</h2>
+            <h2 style="color:#4dd9c0; margin-bottom:8px;">ðŸ¦• Dino Storage</h2>
             <p style="color:#a0c4c0; font-size:13px; margin-bottom:24px;">Store your dinosaur and load it back later. You must leave the server first.</p>
             <div style="display:flex; gap:8px; margin-bottom:12px;">
                 <input type="text" id="playerSlotNameInput" placeholder="Slot name (e.g. My Rex)" style="margin-bottom:0; flex:1; font-size:13px;" />
-                <button class="btn small" onclick="storeDinoPlayer()">💾 Store</button>
+                <button class="btn small" onclick="storeDinoPlayer()">ðŸ’¾ Store</button>
             </div>
-            <button class="btn danger" style="margin-bottom:16px;" onclick="startFreshPlayer()">🆕 Start Fresh</button>
+            <button class="btn danger" style="margin-bottom:16px;" onclick="startFreshPlayer()">ðŸ†• Start Fresh</button>
             <div id="playerStorageStatus" style="font-size:13px; color:#4dd9c0; margin-bottom:16px;"></div>
             <h3 style="color:#4dd9c0; margin-bottom:12px;">Stored Dinos</h3>
             <div id="playerStorageSlots" style="font-size:13px; color:#a0c4c0;">Loading...</div>
@@ -123,7 +123,7 @@
     <div id="playerTab-map" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
         <div id="playerMapContainer">
             <canvas id="playerMapCanvas"></canvas>
-            <div id="playerMapCoords">—</div>
+            <div id="playerMapCoords">â€”</div>
         </div>
         <div id="playerMapLegend">
             <span style="color:#a0c4c0; margin-right:4px;">Layers:</span>
@@ -142,13 +142,13 @@
 <!-- ADMIN VIEW -->
 <div id="appScreen">
     <div id="sidebar">
-        <div class="logo">🦕 Deep Isle</div>
-        <div class="nav-item active" onclick="showPanel('home', this)">🏠 Home</div>
-        <div class="nav-item" onclick="showPanel('players', this)">🦖 Players</div>
-        <div class="nav-item" onclick="showPanel('voice', this)">🎙️ Voice</div>
-        <div class="nav-item admin-only" onclick="showPanel('controls', this)">⚙️ Controls</div>
-        <div class="nav-item" onclick="showPanel('storage', this)">🦕 Dino Storage</div>
-        <div class="nav-item" onclick="showPanel('map', this)">🗺️ Map</div>
+        <div class="logo">ðŸ¦• Deep Isle</div>
+        <div class="nav-item active" onclick="showPanel('home', this)">ðŸ  Home</div>
+        <div class="nav-item" onclick="showPanel('players', this)">ðŸ¦– Players</div>
+        <div class="nav-item" onclick="showPanel('voice', this)">ðŸŽ™ï¸ Voice</div>
+        <div class="nav-item admin-only" onclick="showPanel('controls', this)">âš™ï¸ Controls</div>
+        <div class="nav-item" onclick="showPanel('storage', this)">ðŸ¦• Dino Storage</div>
+        <div class="nav-item" onclick="showPanel('map', this)">ðŸ—ºï¸ Map</div>
         <div class="spacer"></div>
         <div class="user-info" id="sidebarUser"></div>
     </div>
@@ -158,7 +158,7 @@
                 <span id="topbarTitle">Home</span>
                 <select id="serverSelect" onchange="switchServer()" style="background:#112e2e; color:#4dd9c0; border:1px solid #1e4a4a; border-radius:6px; padding:4px 8px; font-size:13px;"></select>
             </div>
-            <span style="font-size:12px; color:#4dd9c0;">● Server Online</span>
+            <span style="font-size:12px; color:#4dd9c0;">â— Server Online</span>
         </div>
         <div id="content">
 
@@ -166,9 +166,9 @@
             <div class="panel active" id="panel-home">
                 <h2>Dashboard</h2>
                 <div class="stat-grid">
-                    <div class="stat-card"><div class="label">Players Online</div><div class="value" id="statPlayers">—</div></div>
-                    <div class="stat-card"><div class="label">Server</div><div class="value" style="font-size:16px; padding-top:6px;" id="statServer">—</div></div>
-                    <div class="stat-card"><div class="label">LiveKit</div><div class="value" style="font-size:16px; padding-top:6px;" id="statVoice">—</div></div>
+                    <div class="stat-card"><div class="label">Players Online</div><div class="value" id="statPlayers">â€”</div></div>
+                    <div class="stat-card"><div class="label">Server</div><div class="value" style="font-size:16px; padding-top:6px;" id="statServer">â€”</div></div>
+                    <div class="stat-card"><div class="label">LiveKit</div><div class="value" style="font-size:16px; padding-top:6px;" id="statVoice">â€”</div></div>
                 </div>
                 <h2>Recent Activity</h2>
                 <div class="log-box" id="activityLog"></div>
@@ -184,7 +184,7 @@
             <div class="panel" id="panel-voice">
                 <h2>Voice</h2>
                 <p style="color:#a0c4c0; margin-bottom:20px;">Connect to the LiveKit voice room.</p>
-                <button class="btn" style="width:200px;" id="voiceBtnAdmin" onclick="connectVoiceAdmin()">🎙️ Join Voice</button>
+                <button class="btn" style="width:200px;" id="voiceBtnAdmin" onclick="connectVoiceAdmin()">ðŸŽ™ï¸ Join Voice</button>
                 <div id="voiceStatusAdmin" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
             </div>
 
@@ -194,21 +194,21 @@
                 <div id="leadAdminControls" style="display:none; margin-bottom:24px;">
                     <p style="font-size:13px; color:#a0c4c0; margin-bottom:8px;">Server Power</p>
                     <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
-                        <button class="btn small danger" onclick="sendCommand('restart')">🔄 Restart Server</button>
-                        <button class="btn small danger" onclick="sendCommand('stop')">🛑 Stop Server</button>
+                        <button class="btn small danger" onclick="sendCommand('restart')">ðŸ”„ Restart Server</button>
+                        <button class="btn small danger" onclick="sendCommand('stop')">ðŸ›‘ Stop Server</button>
                     </div>
                 </div>
                 <div style="margin-bottom:24px;">
                     <p style="font-size:13px; color:#a0c4c0; margin-bottom:8px;">Broadcast Message</p>
                     <input type="text" id="broadcastMsg" placeholder="Message to all players..." />
-                    <button class="btn small" onclick="sendBroadcast()">📢 Send</button>
+                    <button class="btn small" onclick="sendBroadcast()">ðŸ“¢ Send</button>
                 </div>
                 <div style="margin-bottom:24px;">
                     <p style="font-size:13px; color:#a0c4c0; margin-bottom:8px;">Automation</p>
                     <div style="display:flex; gap:12px; flex-wrap:wrap;">
-                        <button class="btn small" id="enforcerBtn" onclick="toggleEnforcer()">🎙️ Voice Enforcer: OFF</button>
-                        <button class="btn small" id="speciesBtn" onclick="toggleSpeciesLimiter()">🦖 Species Limiter: ON</button>
-                        <button class="btn small" id="updateNotifyBtn" onclick="toggleUpdateNotify()">🔄 Update Notify: OFF</button>
+                        <button class="btn small" id="enforcerBtn" onclick="toggleEnforcer()">ðŸŽ™ï¸ Voice Enforcer: OFF</button>
+                        <button class="btn small" id="speciesBtn" onclick="toggleSpeciesLimiter()">ðŸ¦– Species Limiter: ON</button>
+                        <button class="btn small" id="updateNotifyBtn" onclick="toggleUpdateNotify()">ðŸ”„ Update Notify: OFF</button>
                     </div>
                 </div>
                 <div id="controlStatus" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
@@ -220,8 +220,8 @@
                 <p style="color:#a0c4c0; font-size:13px; margin-bottom:20px;">Store your dinosaur progress and load it back later. You must leave the server before storing or loading a dino.</p>
                 <div style="display:flex; gap:8px; margin-bottom:20px; align-items:center;">
                     <input type="text" id="slotNameInput" placeholder="Slot name (e.g. My Rex)" style="margin-bottom:0; flex:1;" />
-                    <button class="btn small" onclick="storeDino()">💾 Store Dino</button>
-                    <button class="btn small danger" onclick="startFreshPlayer()">🆕 Start Fresh</button>
+                    <button class="btn small" onclick="storeDino()">ðŸ’¾ Store Dino</button>
+                    <button class="btn small danger" onclick="startFreshPlayer()">ðŸ†• Start Fresh</button>
                 </div>
                 <div id="storageStatus" style="margin-bottom:16px; font-size:13px; color:#4dd9c0;"></div>
                 <h2 style="margin-bottom:12px;">Stored Dinos</h2>
@@ -232,7 +232,7 @@
             <div class="panel" id="panel-map" style="padding:0; height:calc(100vh - 49px); display:none; flex-direction:column;">
                 <div id="mapContainer">
                     <canvas id="mapCanvas"></canvas>
-                    <div id="mapCoords">—</div>
+                    <div id="mapCoords">â€”</div>
                 </div>
                 <div id="mapTooltip"></div>
                 <div id="mapLegend">
@@ -265,7 +265,7 @@ const ROLE_RANK = { player: 1, trial_admin: 2, admin: 3, lead_admin: 4, owner: 5
 
 window.addEventListener('DOMContentLoaded', loadServerButtons);
 
-// ── Login ──────────────────────────────────────────────────────────────────
+// â”€â”€ Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadServerButtons() {
     try {
         const res = await fetch(`${API}/servers`);
@@ -310,18 +310,18 @@ function showLoginStatus(msg, isError) {
     el.style.color = isError ? '#f87171' : '#4dd9c0';
 }
 
-// ── View Routing ───────────────────────────────────────────────────────────
+// â”€â”€ View Routing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function launchView() {
     const rank = ROLE_RANK[currentRole] || 1;
     if (rank >= 2) { launchAdminView(); } else { launchPlayerView(); }
 }
 
-// ── Player View ────────────────────────────────────────────────────────────
+// â”€â”€ Player View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function launchPlayerView() {
     document.title = currentServerName;
     document.getElementById('playerScreen').style.display = 'flex';
     document.getElementById('playerServerName').textContent = currentServerName;
-    document.getElementById('playerUserInfo').textContent = '👤 ' + currentUser;
+    document.getElementById('playerUserInfo').textContent = 'ðŸ‘¤ ' + currentUser;
     refreshPlayerCount();
     setInterval(refreshPlayerCount, 30000);
 }
@@ -341,18 +341,18 @@ async function refreshPlayerCount() {
         const res = await fetch(`${API}/players?serverId=${currentServerId}`);
         const data = await res.json();
         document.getElementById('playerCount').textContent = Object.keys(data.players || {}).length;
-    } catch { document.getElementById('playerCount').textContent = '—'; }
+    } catch { document.getElementById('playerCount').textContent = 'â€”'; }
 }
 
-// ── Admin View ─────────────────────────────────────────────────────────────
+// â”€â”€ Admin View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function launchAdminView() {
     const rank = ROLE_RANK[currentRole] || 1;
     document.title = currentServerName + ' Admin';
     document.getElementById('appScreen').style.display = 'flex';
     if (rank < 2) document.querySelector('.admin-only').style.display = 'none';
     if (rank >= 4) document.getElementById('leadAdminControls').style.display = 'block';
-    const badges = { player: '🟢 Player', trial_admin: '🔵 Trial Admin', admin: '🟡 Admin', lead_admin: '🟠 Lead Admin', owner: '🔴 Owner' };
-    document.getElementById('sidebarUser').innerHTML = `👤 ${currentUser}<br><span style="font-size:11px; color:#a0c4c0;">${badges[currentRole] || currentRole}</span>`;
+    const badges = { player: 'ðŸŸ¢ Player', trial_admin: 'ðŸ”µ Trial Admin', admin: 'ðŸŸ¡ Admin', lead_admin: 'ðŸŸ  Lead Admin', owner: 'ðŸ”´ Owner' };
+    document.getElementById('sidebarUser').innerHTML = `ðŸ‘¤ ${currentUser}<br><span style="font-size:11px; color:#a0c4c0;">${badges[currentRole] || currentRole}</span>`;
     loadServers();
     startDashboard();
     loadToggleStates();
@@ -376,7 +376,7 @@ function switchServer() {
     const opt = select.options[select.selectedIndex];
     currentServerName = opt ? opt.text : currentServerId;
     document.getElementById('statServer').textContent = currentServerName;
-    document.getElementById('statPlayers').textContent = '—';
+    document.getElementById('statPlayers').textContent = 'â€”';
     document.getElementById('playerList').textContent = 'Loading...';
     document.getElementById('controlStatus').textContent = '';
     document.getElementById('activityLog').innerHTML = '';
@@ -403,7 +403,7 @@ function showPanel(name, el) {
     if (name === 'storage') loadStorageSlots();
 }
 
-// ── Dashboard ──────────────────────────────────────────────────────────────
+// â”€â”€ Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let lastPlayerList = {};
 let dashboardInterval = null;
 
@@ -424,14 +424,14 @@ async function refreshPlayersWithLog(silent = false) {
         renderPlayerList(players);
         if (!silent) {
             for (const [id, name] of Object.entries(players)) {
-                if (!lastPlayerList[id]) addActivityLog(`🦖 ${name} joined the server`, '#4dd9c0');
+                if (!lastPlayerList[id]) addActivityLog(`ðŸ¦– ${name} joined the server`, '#4dd9c0');
             }
             for (const [id, name] of Object.entries(lastPlayerList)) {
-                if (!players[id]) addActivityLog(`💀 ${name} left the server`, '#facc15');
+                if (!players[id]) addActivityLog(`ðŸ’€ ${name} left the server`, '#facc15');
             }
         }
         lastPlayerList = { ...players };
-    } catch { document.getElementById('statPlayers').textContent = '—'; }
+    } catch { document.getElementById('statPlayers').textContent = 'â€”'; }
 }
 
 async function addActivityLog(message, color = '#a0c4c0') {
@@ -451,7 +451,7 @@ async function addActivityLog(message, color = '#a0c4c0') {
     }).catch(() => {});
 }
 
-// ── Player List ────────────────────────────────────────────────────────────
+// â”€â”€ Player List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function renderPlayerList(players) {
     const el = document.getElementById('playerList');
     const entries = Object.entries(players);
@@ -460,7 +460,7 @@ function renderPlayerList(players) {
     el.innerHTML = entries.map(([id, name]) => `
         <div style="padding:10px 0; border-bottom:1px solid #1e4a4a;">
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-                <span>🦖 ${name}</span>
+                <span>ðŸ¦– ${name}</span>
                 <span style="font-size:11px; color:#a0c4c0;">${id}</span>
             </div>
             ${rank >= 2 ? `
@@ -490,7 +490,7 @@ async function banPlayer(steamId, name) {
     } catch { alert('Failed to ban player.'); }
 }
 
-// ── Controls ───────────────────────────────────────────────────────────────
+// â”€â”€ Controls â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function sendCommand(cmd) {
     const status = document.getElementById('controlStatus');
     status.textContent = 'Sending...';
@@ -519,7 +519,7 @@ async function toggleEnforcer() {
         const res = await fetch(`${API}/enforcer/toggle`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
         const data = await res.json();
         const btn = document.getElementById('enforcerBtn');
-        btn.textContent = `🎙️ Voice Enforcer: ${data.enabled ? 'ON' : 'OFF'}`;
+        btn.textContent = `ðŸŽ™ï¸ Voice Enforcer: ${data.enabled ? 'ON' : 'OFF'}`;
         btn.style.background = data.enabled ? '#4dd9c0' : '';
         document.getElementById('controlStatus').textContent = `Voice enforcer ${data.enabled ? 'enabled' : 'disabled'}.`;
     } catch { document.getElementById('controlStatus').textContent = 'Failed to toggle enforcer.'; }
@@ -530,7 +530,7 @@ async function toggleSpeciesLimiter() {
         const res = await fetch(`${API}/species-limiter/toggle`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
         const data = await res.json();
         const btn = document.getElementById('speciesBtn');
-        btn.textContent = `🦖 Species Limiter: ${data.enabled ? 'ON' : 'OFF'}`;
+        btn.textContent = `ðŸ¦– Species Limiter: ${data.enabled ? 'ON' : 'OFF'}`;
         btn.style.background = data.enabled ? '#4dd9c0' : '';
         document.getElementById('controlStatus').textContent = `Species limiter ${data.enabled ? 'enabled' : 'disabled'}.`;
     } catch { document.getElementById('controlStatus').textContent = 'Failed to toggle species limiter.'; }
@@ -541,7 +541,7 @@ let updateNotifyEnabled = false;
 async function toggleUpdateNotify() {
     updateNotifyEnabled = !updateNotifyEnabled;
     const btn = document.getElementById('updateNotifyBtn');
-    btn.textContent = `🔄 Update Notify: ${updateNotifyEnabled ? 'ON' : 'OFF'}`;
+    btn.textContent = `ðŸ”„ Update Notify: ${updateNotifyEnabled ? 'ON' : 'OFF'}`;
     btn.style.background = updateNotifyEnabled ? '#4dd9c0' : '';
     document.getElementById('controlStatus').textContent = `Update notifications ${updateNotifyEnabled ? 'enabled' : 'disabled'}.`;
     await fetch(`${API}/settings`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ updateNotify: updateNotifyEnabled }) }).catch(() => {});
@@ -556,9 +556,9 @@ async function loadToggleStates() {
         const enforcerBtn = document.getElementById('enforcerBtn');
         const speciesBtn = document.getElementById('speciesBtn');
         const updateBtn = document.getElementById('updateNotifyBtn');
-        if (enforcerBtn) { enforcerBtn.textContent = `🎙️ Voice Enforcer: ${enforcer.enabled ? 'ON' : 'OFF'}`; enforcerBtn.style.background = enforcer.enabled ? '#4dd9c0' : ''; }
-        if (speciesBtn) { speciesBtn.textContent = `🦖 Species Limiter: ${species.enabled ? 'ON' : 'OFF'}`; speciesBtn.style.background = species.enabled ? '#4dd9c0' : ''; }
-        if (updateBtn && settings.updateNotify) { updateNotifyEnabled = true; updateBtn.textContent = '🔄 Update Notify: ON'; updateBtn.style.background = '#4dd9c0'; }
+        if (enforcerBtn) { enforcerBtn.textContent = `ðŸŽ™ï¸ Voice Enforcer: ${enforcer.enabled ? 'ON' : 'OFF'}`; enforcerBtn.style.background = enforcer.enabled ? '#4dd9c0' : ''; }
+        if (speciesBtn) { speciesBtn.textContent = `ðŸ¦– Species Limiter: ${species.enabled ? 'ON' : 'OFF'}`; speciesBtn.style.background = species.enabled ? '#4dd9c0' : ''; }
+        if (updateBtn && settings.updateNotify) { updateNotifyEnabled = true; updateBtn.textContent = 'ðŸ”„ Update Notify: ON'; updateBtn.style.background = '#4dd9c0'; }
     } catch {}
 }
 
@@ -578,7 +578,7 @@ async function loadActivityLog() {
     } catch {}
 }
 
-// ── Voice System ───────────────────────────────────────────────────────────
+// â”€â”€ Voice System â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const LivekitClient = window.LivekitClient;
 let room = null;
 let localAudioTrack = null;
@@ -638,7 +638,7 @@ async function connectVoice(statusElId, btnElId) {
         localAudioTrack = await buildAudioTrack();
         await room.localParticipant.publishTrack(localAudioTrack);
         localAudioTrack.mute();
-        status.textContent = `🎙️ Connected — Hold middle mouse to talk`;
+        status.textContent = `ðŸŽ™ï¸ Connected â€” Hold middle mouse to talk`;
         if (btn) btn.style.display = 'none';
         fetch(`${API}/enforcer/voice-connected`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }) }).catch(() => {});
         reshardTimer = setInterval(() => checkReshard(statusElId), 5000);
@@ -675,7 +675,7 @@ async function checkReshard(statusElId) {
             if (localAudioTrack) { await room.localParticipant.publishTrack(localAudioTrack); if (!pttActive) localAudioTrack.mute(); }
             updateAudioMatrix();
             const status = document.getElementById(statusElId);
-            if (status) status.textContent = `🎙️ Connected — Hold middle mouse to talk`;
+            if (status) status.textContent = `ðŸŽ™ï¸ Connected â€” Hold middle mouse to talk`;
         }
     } catch {}
 }
@@ -695,10 +695,10 @@ async function updateAudioMatrix() {
 async function connectVoicePlayer() { await connectVoice('voiceStatusPlayer', 'voiceBtnPlayer'); }
 async function connectVoiceAdmin() { await connectVoice('voiceStatusAdmin', 'voiceBtnAdmin'); }
 
-window.electronAPI.onUpdateAvailable(() => { addActivityLog('🔄 Update available — downloading...', '#facc15'); });
-window.electronAPI.onUpdateDownloaded(() => { addActivityLog('✅ Update downloaded — will install on next restart.', '#4dd9c0'); });
+window.electronAPI.onUpdateAvailable(() => { addActivityLog('ðŸ”„ Update available â€” downloading...', '#facc15'); });
+window.electronAPI.onUpdateDownloaded(() => { addActivityLog('âœ… Update downloaded â€” will install on next restart.', '#4dd9c0'); });
 
-// ── Admin Dino Storage ─────────────────────────────────────────────────────
+// â”€â”€ Admin Dino Storage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadStorageSlots() {
     try {
         const res = await fetch(`${API}/dino-storage?steamId=${currentSteamId}&serverId=${currentServerId}`);
@@ -707,10 +707,10 @@ async function loadStorageSlots() {
         if (!data.slots || data.slots.length === 0) { el.textContent = 'No stored dinos yet.'; return; }
         el.innerHTML = data.slots.map(slot => `
             <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid #1e4a4a;">
-                <div><span>🦕 ${slot.slot}</span><span style="font-size:11px; color:#a0c4c0; margin-left:12px;">Saved: ${new Date(slot.saved).toLocaleString()}</span></div>
+                <div><span>ðŸ¦• ${slot.slot}</span><span style="font-size:11px; color:#a0c4c0; margin-left:12px;">Saved: ${new Date(slot.saved).toLocaleString()}</span></div>
                 <div style="display:flex; gap:8px;">
-                    <button class="btn small" onclick="loadDino('${slot.slot}')">▶ Load</button>
-                    <button class="btn small danger" onclick="deleteDino('${slot.slot}')">🗑 Delete</button>
+                    <button class="btn small" onclick="loadDino('${slot.slot}')">â–¶ Load</button>
+                    <button class="btn small danger" onclick="deleteDino('${slot.slot}')">ðŸ—‘ Delete</button>
                 </div>
             </div>
         `).join('');
@@ -770,7 +770,7 @@ async function startFreshPlayer() {
     } catch { status.style.color = '#f87171'; status.textContent = 'Failed to clear save.'; }
 }
 
-// ── Player Dino Storage ────────────────────────────────────────────────────
+// â”€â”€ Player Dino Storage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadPlayerStorageSlots() {
     try {
         const res = await fetch(`${API}/dino-storage?steamId=${currentSteamId}&serverId=${currentServerId}`);
@@ -779,10 +779,10 @@ async function loadPlayerStorageSlots() {
         if (!data.slots || data.slots.length === 0) { el.textContent = 'No stored dinos yet.'; return; }
         el.innerHTML = data.slots.map(slot => `
             <div style="display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid #1e4a4a;">
-                <span>🦕 ${slot.slot}</span>
+                <span>ðŸ¦• ${slot.slot}</span>
                 <div style="display:flex; gap:6px;">
-                    <button class="btn small" onclick="loadDinoPlayer('${slot.slot}')">▶ Load</button>
-                    <button class="btn small danger" onclick="deleteDinoPlayer('${slot.slot}')">🗑</button>
+                    <button class="btn small" onclick="loadDinoPlayer('${slot.slot}')">â–¶ Load</button>
+                    <button class="btn small danger" onclick="deleteDinoPlayer('${slot.slot}')">ðŸ—‘</button>
                 </div>
             </div>
         `).join('');
@@ -828,9 +828,9 @@ async function deleteDinoPlayer(slotName) {
     } catch { status.style.color = '#f87171'; status.textContent = 'Failed to delete slot.'; }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-// ── MAP ENGINE ────────────────────────────────────────────────────────────────
-// ══════════════════════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€ MAP ENGINE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 // Coordinate system: lat/lng -600 to +600, image 1000x1000
 const MAP_IMG_SIZE = 1000;
@@ -852,7 +852,7 @@ function canvasToWorld(cx, cy, offsetX, offsetY, scale) {
     return { lat: Math.round(lat * 10) / 10, lng: Math.round(lng * 10) / 10 };
 }
 
-// ── Map Data ──────────────────────────────────────────────────────────────────
+// â”€â”€ Map Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const AI_FOOD_TYPES = ['AI_Boar.png','AI_Deer.png','AI_Rabbit.png','AI_Chicken.png','AI_Goat.png','AI_Bullfrog.png','AI_Seaturtle.png'];
 
 const MAP_DATA = {
@@ -1011,7 +1011,7 @@ const MAP_DATA = {
     ],
 };
 
-// ── Map State ─────────────────────────────────────────────────────────────────
+// â”€â”€ Map State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let mapState = null;
 let playerMapState = null;
 
@@ -1101,4 +1101,232 @@ function drawMap(state) {
     // Draw base map
     ctx.drawImage(img, offsetX, offsetY, MAP_IMG_SIZE * scale, MAP_IMG_SIZE * scale);
 
-    const wp = (lat, lng)
+    const wp = (lat, lng) => worldToCanvas(lat, lng, offsetX, offsetY, scale);
+    state.tooltipItems = [];
+
+    // Migration Zones
+    if (layers.migration) {
+        for (const m of MAP_DATA.migrations) {
+            ctx.globalAlpha = 0.25;
+            if (m.kind === 'ellipse') {
+                const c = wp(m.lat, m.lng);
+                const rxPx = (m.rx / MAP_RANGE) * MAP_IMG_SIZE * scale;
+                const ryPx = (m.ry / MAP_RANGE) * MAP_IMG_SIZE * scale;
+                drawEllipse(ctx, c.x, c.y, rxPx, ryPx, m.rotDeg, 'rgba(251,191,36,0.2)', '#fbbf24', 1);
+            } else if (m.kind === 'polygon') {
+                ctx.beginPath();
+                m.points.forEach((p, i) => { const c = wp(p.lat, p.lng); i === 0 ? ctx.moveTo(c.x, c.y) : ctx.lineTo(c.x, c.y); });
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(251,191,36,0.2)'; ctx.fill();
+                ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1; ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    // Sanctuaries
+    if (layers.sanctuary) {
+        for (const s of MAP_DATA.sanctuaries) {
+            const c = wp(s.lat, s.lng);
+            const rxPx = (s.rx / MAP_RANGE) * MAP_IMG_SIZE * scale;
+            const ryPx = (s.ry / MAP_RANGE) * MAP_IMG_SIZE * scale;
+            ctx.globalAlpha = 0.35;
+            drawEllipse(ctx, c.x, c.y, rxPx, ryPx, s.rotDeg, 'rgba(74,222,128,0.3)', '#4ade80', 1.5);
+            ctx.globalAlpha = 1;
+            if (scale > 0.6) {
+                ctx.fillStyle = '#4ade80'; ctx.font = `bold ${Math.max(9, 11 * scale)}px sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(s.name, c.x, c.y);
+            }
+            state.tooltipItems.push({ lat: s.lat, lng: s.lng, r: Math.max(rxPx, ryPx), label: `Sanctuary: ${s.name}` });
+        }
+    }
+
+    // Water
+    if (layers.water) {
+        for (const w of MAP_DATA.water) {
+            const c = wp(w.lat, w.lng);
+            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(3, 4 * scale), 0, Math.PI * 2);
+            ctx.fillStyle = '#38bdf8'; ctx.fill();
+            if (scale > 0.9) {
+                ctx.fillStyle = '#bae6fd'; ctx.font = `${Math.max(8, 9 * scale)}px sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+                ctx.fillText(w.name, c.x, c.y + 5 * scale);
+            }
+            state.tooltipItems.push({ lat: w.lat, lng: w.lng, r: 8, label: `Water: ${w.name}` });
+        }
+    }
+
+    // Area Labels
+    if (layers.area && scale > 0.5) {
+        for (const a of MAP_DATA.areas) {
+            const c = wp(a.lat, a.lng);
+            ctx.fillStyle = 'rgba(148,163,184,0.7)'; ctx.font = `${Math.max(9, 11 * scale)}px sans-serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(a.name, c.x, c.y);
+        }
+    }
+
+    // Gastroliths
+    if (layers.gastro) {
+        for (const g of MAP_DATA.gastro) {
+            const c = wp(g.lat, g.lng);
+            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(2, 2.5 * scale), 0, Math.PI * 2);
+            ctx.fillStyle = '#a3e635'; ctx.fill();
+        }
+    }
+
+    // Salt Licks
+    if (layers.salt) {
+        for (const s of MAP_DATA.salt) {
+            const c = wp(s.lat, s.lng);
+            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(3, 3.5 * scale), 0, Math.PI * 2);
+            ctx.fillStyle = '#fb923c'; ctx.fill();
+            state.tooltipItems.push({ lat: s.lat, lng: s.lng, r: 6, label: 'Salt Lick' });
+        }
+    }
+
+    // AI Food
+    if (layers.food) {
+        for (const f of MAP_DATA.food) {
+            const c = wp(f.lat, f.lng);
+            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(3, 4 * scale), 0, Math.PI * 2);
+            ctx.fillStyle = '#f9a8d4'; ctx.fill();
+            ctx.strokeStyle = '#be185d'; ctx.lineWidth = 1; ctx.stroke();
+            state.tooltipItems.push({ lat: f.lat, lng: f.lng, r: 7, label: `AI ${f.name}` });
+        }
+    }
+
+    // Landmarks
+    if (layers.landmark) {
+        for (const l of MAP_DATA.landmarks) {
+            const c = wp(l.lat, l.lng);
+            ctx.beginPath();
+            ctx.moveTo(c.x, c.y - 6 * scale); ctx.lineTo(c.x + 4 * scale, c.y + 4 * scale); ctx.lineTo(c.x - 4 * scale, c.y + 4 * scale);
+            ctx.closePath(); ctx.fillStyle = '#c084fc'; ctx.fill();
+            if (scale > 0.7) {
+                ctx.fillStyle = '#e9d5ff'; ctx.font = `${Math.max(8, 9 * scale)}px sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+                ctx.fillText(l.name, c.x, c.y + 6 * scale);
+            }
+            state.tooltipItems.push({ lat: l.lat, lng: l.lng, r: 8, label: l.name });
+        }
+    }
+
+    // Players
+    if (layers.players) {
+        for (const [steamId, pos] of Object.entries(playerPositions)) {
+            const isSelf = steamId === currentSteamId;
+            if (!isAdmin && !isSelf) continue;
+            const c = wp(pos.lat || 0, pos.lng || 0);
+            const r = Math.max(5, 6 * scale);
+            ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+            ctx.fillStyle = isSelf ? '#ff4444' : '#ffaa00';
+            ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+            if (scale > 0.6) {
+                ctx.fillStyle = '#fff'; ctx.font = `bold ${Math.max(9, 10 * scale)}px sans-serif`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+                ctx.fillText(pos.name || steamId, c.x, c.y - r - 2);
+            }
+            state.tooltipItems.push({ lat: pos.lat, lng: pos.lng, r: r + 4, label: `${pos.name || steamId}${isSelf ? ' (you)' : ''}` });
+        }
+    }
+}
+
+function handleTooltip(e, state) {
+    if (!state.isAdmin) return;
+    const rect = state.canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const tooltip = document.getElementById('mapTooltip');
+    if (!tooltip) return;
+    for (const item of state.tooltipItems) {
+        const c = worldToCanvas(item.lat, item.lng, state.offsetX, state.offsetY, state.scale);
+        const dist = Math.sqrt((mx - c.x) ** 2 + (my - c.y) ** 2);
+        if (dist <= item.r + 4) {
+            tooltip.textContent = item.label;
+            tooltip.style.display = 'block';
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY - 8) + 'px';
+            return;
+        }
+    }
+    hideTooltip();
+}
+
+function hideTooltip() {
+    const t = document.getElementById('mapTooltip');
+    if (t) t.style.display = 'none';
+}
+
+function toggleLayer(name) {
+    if (!mapState) return;
+    mapState.layers[name] = !mapState.layers[name];
+    const el = document.getElementById('leg-' + name);
+    if (el) el.classList.toggle('disabled', !mapState.layers[name]);
+    drawMap(mapState);
+}
+
+function togglePlayerLayer(name) {
+    if (!playerMapState) return;
+    playerMapState.layers[name] = !playerMapState.layers[name];
+    const el = document.getElementById('pleg-' + name);
+    if (el) el.classList.toggle('disabled', !playerMapState.layers[name]);
+    drawMap(playerMapState);
+}
+
+let adminMapInitialized = false;
+let playerMapInitialized = false;
+let mapPollInterval = null;
+
+function initAdminMap() {
+    if (!adminMapInitialized) {
+        mapState = createMapState('mapCanvas', 'mapContainer', true);
+        adminMapInitialized = true;
+    } else {
+        resizeCanvas(mapState);
+        drawMap(mapState);
+    }
+    startMapPolling();
+}
+
+function initPlayerMap() {
+    if (!playerMapInitialized) {
+        playerMapState = createMapState('playerMapCanvas', 'playerMapContainer', false);
+        playerMapInitialized = true;
+    } else {
+        resizeCanvas(playerMapState);
+        drawMap(playerMapState);
+    }
+    startMapPolling();
+}
+
+function startMapPolling() {
+    if (mapPollInterval) return;
+    mapPollInterval = setInterval(pollMapPositions, 5000);
+    pollMapPositions();
+}
+
+async function pollMapPositions() {
+    try {
+        const res = await fetch(`${API}/positions?serverId=${currentServerId}`);
+        const data = await res.json();
+        const positions = data.positions || {};
+        const converted = {};
+        for (const [steamId, pos] of Object.entries(positions)) {
+            converted[steamId] = { lat: pos.x / 1000, lng: pos.y / 1000, name: pos.name };
+        }
+        if (mapState) { mapState.playerPositions = converted; drawMap(mapState); }
+        if (playerMapState) { playerMapState.playerPositions = converted; drawMap(playerMapState); }
+    } catch {}
+}
+
+window.addEventListener('resize', () => {
+    if (mapState) { resizeCanvas(mapState); drawMap(mapState); }
+    if (playerMapState) { resizeCanvas(playerMapState); drawMap(playerMapState); }
+});
+
+</script>
+</body>
+</html>
