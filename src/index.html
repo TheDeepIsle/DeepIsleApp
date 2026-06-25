@@ -339,7 +339,7 @@
         document.getElementById('controlStatus').textContent = '';
         document.getElementById('activityLog').innerHTML = '';
         lastPlayerList = {};
-        refreshPlayersWithLog();
+        startDashboard()
         loadActivityLog();
     }
 
@@ -355,9 +355,12 @@
     // ── Dashboard ──────────────────────────────────────────────────────────────
     let lastPlayerList = {};
 
+    let dashboardInterval = null;
+
     function startDashboard() {
+        if (dashboardInterval) clearInterval(dashboardInterval);
         refreshPlayersWithLog();
-        setInterval(refreshPlayersWithLog, 5000);
+        dashboardInterval = setInterval(refreshPlayersWithLog, 5000);
         document.getElementById('statVoice').textContent = 'Ready';
     }
 
