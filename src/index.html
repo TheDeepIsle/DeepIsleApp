@@ -339,8 +339,10 @@
         document.getElementById('controlStatus').textContent = '';
         document.getElementById('activityLog').innerHTML = '';
         lastPlayerList = {};
-        startDashboard()
+        refreshPlayersWithLog(true);
         loadActivityLog();
+        if (dashboardInterval) clearInterval(dashboardInterval);
+        dashboardInterval = setInterval(refreshPlayersWithLog, 5000);
     }
 
     function showPanel(name, el) {
@@ -364,7 +366,7 @@
         document.getElementById('statVoice').textContent = 'Ready';
     }
 
-    async function refreshPlayersWithLog() {
+    async function refreshPlayersWithLog(silent = false) {
         try {
             const res = await fetch(`${API}/players?serverId=${currentServerId}`);
             const data = await res.json();
@@ -372,14 +374,16 @@
             const count = Object.keys(players).length;
             document.getElementById('statPlayers').textContent = count;
             renderPlayerList(players);
-            for (const [id, name] of Object.entries(players)) {
-                if (!lastPlayerList[id]) {
-                    addActivityLog(`🦖 ${name} joined the server`, '#4dd9c0');
+            if (!silent) {
+                for (const [id, name] of Object.entries(players)) {
+                    if (!lastPlayerList[id]) {
+                        addActivityLog(`🦖 ${name} joined the server`, '#4dd9c0');
+                    }
                 }
-            }
-            for (const [id, name] of Object.entries(lastPlayerList)) {
-                if (!players[id]) {
-                    addActivityLog(`💀 ${name} left the server`, '#facc15');
+                for (const [id, name] of Object.entries(lastPlayerList)) {
+                    if (!players[id]) {
+                        addActivityLog(`💀 ${name} left the server`, '#facc15');
+                    }
                 }
             }
             lastPlayerList = { ...players };
