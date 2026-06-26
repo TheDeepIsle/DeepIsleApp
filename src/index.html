@@ -67,8 +67,22 @@
         #playerMapContainer:active { cursor: grabbing; }
         #playerMapCanvas { position: absolute; top: 0; left: 0; }
         #playerMapCoords { position: absolute; bottom: 8px; right: 8px; background: rgba(9,24,24,0.85); border: 1px solid #1e4a4a; border-radius: 4px; padding: 4px 8px; font-size: 11px; color: #4dd9c0; font-family: monospace; }
-        #playerMapLegend { background: #091818; border-top: 1px solid #1e4a4a; padding: 8px 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; font-size: 12px; }
-    </style>
+        #playerMapLegend { background: #091818; border-top: 1px solid #1e4a4a; padding: 6px 12px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 11px; min-height: 60px; }
+    
+        /* ── Skin Editor ── */
+        .skin-section { margin-bottom: 16px; }
+        .skin-section-label { font-size: 12px; color: #a0c4c0; margin-bottom: 6px; }
+        .skin-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+        .skin-swatch { width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid rgba(255,255,255,0.3); transition: border-color 0.15s, transform 0.1s; }
+        .skin-swatch:hover { transform: scale(1.1); }
+        .skin-swatch.selected { border-color: #fff; transform: scale(1.1); }
+        .skin-swatch.stock-swatch { background: repeating-linear-gradient(45deg, #2a2a2a, #2a2a2a 4px, #4a4a4a 4px, #4a4a4a 8px) !important; }
+        .neon-toggle { display: flex; align-items: center; gap: 10px; margin: 16px 0; font-size: 13px; color: #a0c4c0; }
+        .neon-toggle input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; }
+        .skin-preview { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+        .skin-preview-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #1e4a4a; }
+   
+   </style>
 </head>
 <body>
 
@@ -87,7 +101,8 @@
     <div style="background:#091818; border-bottom:1px solid #1e4a4a; display:flex;">
         <div class="player-tab active" id="tab-dashboard" onclick="switchPlayerTab('dashboard')"> Dashboard</div>
         <div class="player-tab" id="tab-storage" onclick="switchPlayerTab('storage')"> Dino Storage</div>
-        <div class="player-tab" id="tab-map" onclick="switchPlayerTab('map')"> Map</div>
+        <div class="player-tab" id="tab-map" onclick="switchPlayerTab('map')">Map</div>
+        <div class="player-tab" id="tab-skin" onclick="switchPlayerTab('skin')">Skin</div>
     </div>
 
     <!-- Dashboard Tab -->
@@ -116,6 +131,21 @@
             <div id="playerStorageStatus" style="font-size:13px; color:#4dd9c0; margin-bottom:16px;"></div>
             <h3 style="color:#4dd9c0; margin-bottom:12px;">Stored Dinos</h3>
             <div id="playerStorageSlots" style="font-size:13px; color:#a0c4c0;">Loading...</div>
+        </div>
+    </div>
+    
+    <!-- Skin Tab (Player) -->
+    <div id="playerTab-skin" style="display:none; flex:1; flex-direction:column; align-items:center; justify-content:flex-start; padding:32px; overflow-y:auto;">
+        <div style="width:100%; max-width:520px;">
+            <h2 style="color:#4dd9c0; margin-bottom:8px;">Skin Editor</h2>
+            <p style="color:#a0c4c0; font-size:13px; margin-bottom:24px;">Select a color for each section. You must be on the server for changes to apply.</p>
+            <div id="skinSectionsPlayer"></div>
+            <div class="neon-toggle">
+                <input type="checkbox" id="neonTogglePlayer" />
+                <label for="neonTogglePlayer">Neon Mode</label>
+            </div>
+            <button class="btn" style="margin-top:16px;" onclick="applySkinPlayer()">Apply Skin</button>
+            <div id="skinStatusPlayer" style="font-size:13px; color:#4dd9c0; margin-top:12px;"></div>
         </div>
     </div>
 
@@ -149,7 +179,8 @@
         <div class="nav-item" onclick="showPanel('voice', this)"> Voice</div>
         <div class="nav-item admin-only" onclick="showPanel('controls', this)"> Controls</div>
         <div class="nav-item" onclick="showPanel('storage', this)"> Dino Storage</div>
-        <div class="nav-item" onclick="showPanel('map', this)"> Map</div>
+        <div class="nav-item" onclick="showPanel('map', this)">Map</div>
+        <div class="nav-item" onclick="showPanel('skin', this)">Skin Editor</div>
         <div class="spacer"></div>
         <div class="user-info" id="sidebarUser"></div>
     </div>
@@ -185,7 +216,7 @@
             <div class="panel" id="panel-voice">
                 <h2>Voice</h2>
                 <p style="color:#a0c4c0; margin-bottom:20px;">Connect to the LiveKit voice room.</p>
-                <button class="btn" style="width:200px;" id="voiceBtnAdmin" onclick="connectVoiceAdmin()"> Join Voice</button>
+                <button class="btn" onclick="joinVoice()">Join Voice</button>
                 <div id="voiceStatusAdmin" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
             </div>
 
@@ -227,6 +258,20 @@
                 <div id="storageStatus" style="margin-bottom:16px; font-size:13px; color:#4dd9c0;"></div>
                 <h2 style="margin-bottom:12px;">Stored Dinos</h2>
                 <div id="storageSlots" style="font-size:14px; color:#a0c4c0;">Loading...</div>
+            </div>
+            
+            <!-- SKIN EDITOR -->
+            <div class="panel" id="panel-skin">
+                <h2>Skin Editor</h2>
+                <p style="color:#a0c4c0; font-size:13px; margin-bottom:24px;">Select a color for each section. You must be on the server for changes to apply.</p>
+                <div id="skinSectionsAdmin"></div>
+                <div class="neon-toggle">
+                    <input type="checkbox" id="neonToggleAdmin" />
+                    <label for="neonToggleAdmin">Neon Mode</label>
+                </div>
+                
+                <button class="btn" style="width:200px; margin-top:16px;" onclick="applySkinAdmin()">Apply Skin</button>
+                <div id="skinStatusAdmin" style="font-size:13px; color:#4dd9c0; margin-top:12px;"></div>
             </div>
 
             <!-- MAP (Admin) -->
@@ -333,8 +378,10 @@ function switchPlayerTab(name) {
     document.getElementById('playerTab-dashboard').style.display = name === 'dashboard' ? 'flex' : 'none';
     document.getElementById('playerTab-storage').style.display = name === 'storage' ? 'flex' : 'none';
     document.getElementById('playerTab-map').style.display = name === 'map' ? 'flex' : 'none';
+    document.getElementById('playerTab-skin').style.display = name === 'skin' ? 'flex' : 'none';
     if (name === 'storage') loadPlayerStorageSlots();
     if (name === 'map') initPlayerMap();
+    if (name === 'skin') buildSkinEditor('skinSectionsPlayer', 'player');
 }
 
 async function refreshPlayerCount() {
@@ -403,6 +450,7 @@ function showPanel(name, el) {
     if (el) el.classList.add('active');
     document.getElementById('topbarTitle').textContent = el ? el.textContent.trim() : name;
     if (name === 'storage') loadStorageSlots();
+    if (name === 'skin') buildSkinEditor('skinSectionsAdmin', 'admin');
 }
 
 //  Dashboard 
@@ -427,12 +475,7 @@ async function refreshPlayersWithLog(silent = false) {
         document.getElementById('statPlayers').textContent = count;
         renderPlayerList(players);
         if (!silent) {
-            for (const [id, name] of Object.entries(players)) {
-                if (!lastPlayerList[id]) addActivityLog(`[+] ${name} joined the server`, '#4dd9c0', serverId);
-            }
-            for (const [id, name] of Object.entries(lastPlayerList)) {
-                if (!players[id]) addActivityLog(`[-] ${name} left the server`, '#facc15', serverId);
-            }
+            // Join/leave logging handled by backend
         }
         lastPlayerList = { ...players };
     } catch { document.getElementById('statPlayers').textContent = '—'; }
@@ -834,6 +877,126 @@ async function deleteDinoPlayer(slotName) {
     } catch { status.style.color = '#f87171'; status.textContent = 'Failed to delete slot.'; }
 }
 
+// ── Skin Editor ───────────────────────────────────────────────────────────────
+const SKIN_COLORS = [
+    { name: 'stock',  hex: null },
+    { name: 'red',    hex: '#c41a1a' },
+    { name: 'orange', hex: '#c46b1a' },
+    { name: 'yellow', hex: '#c4b41a' },
+    { name: 'green',  hex: '#1a7a2a' },
+    { name: 'blue',   hex: '#1a3ac4' },
+    { name: 'purple', hex: '#6b1ac4' },
+    { name: 'pink',   hex: '#c41a6b' },
+    { name: 'brown',  hex: '#7a4a1a' },
+    { name: 'grey',   hex: '#6b6b6b' },
+    { name: 'white',  hex: '#e0e0e0' },
+    { name: 'black',  hex: '#1a1a1a' },
+];
+
+const SKIN_SECTIONS = [
+    { key: 'display',   label: 'Display Color' },
+    { key: 'markings',  label: 'Markings' },
+    { key: 'flank',     label: 'Flank' },
+    { key: 'underbelly',label: 'Underbelly' },
+    { key: 'eyes',      label: 'Eyes' },
+    { key: 'body',      label: 'Body' },
+];
+
+const skinSelections = { player: {}, admin: {} };
+
+function buildSkinEditor(containerId, context) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    skinSelections[context] = {};
+    for (const section of SKIN_SECTIONS) {
+        skinSelections[context][section.key] = SKIN_COLORS[0].name;
+        const div = document.createElement('div');
+        div.className = 'skin-section';
+        div.innerHTML = `<div class="skin-section-label">${section.label}</div><div class="skin-swatches" id="swatches-${context}-${section.key}"></div>`;
+        container.appendChild(div);
+        const swatchContainer = document.getElementById(`swatches-${context}-${section.key}`);
+        for (const color of SKIN_COLORS) {
+            const swatch = document.createElement('div');
+            swatch.className = 'skin-swatch' + (color.name === SKIN_COLORS[0].name ? ' selected' : '');
+            if (color.hex) swatch.style.background = color.hex;
+            else swatch.classList.add('stock-swatch');
+            swatch.title = color.name === 'stock' ? 'Stock (keep original)' : color.name;
+            swatch.onclick = () => selectSkinColor(context, section.key, color.name, swatch, swatchContainer);
+            swatchContainer.appendChild(swatch);
+        }
+    }
+    updateSkinPreview(context);
+}
+
+function selectSkinColor(context, sectionKey, colorName, swatch, swatchContainer) {
+    swatchContainer.querySelectorAll('.skin-swatch').forEach(s => s.classList.remove('selected'));
+    swatch.classList.add('selected');
+    skinSelections[context][sectionKey] = colorName;
+    updateSkinPreview(context);
+}
+
+function updateSkinPreview(context) {
+    const preview = document.getElementById(context === 'player' ? 'skinPreviewPlayer' : 'skinPreviewAdmin');
+    if (!preview) return;
+    preview.innerHTML = '';
+    for (const section of SKIN_SECTIONS) {
+        const colorName = skinSelections[context][section.key];
+        const color = SKIN_COLORS.find(c => c.name === colorName);
+        const swatch = document.createElement('div');
+        swatch.className = 'skin-preview-swatch';
+        if (color && color.hex) swatch.style.background = color.hex;
+        else swatch.classList.add('stock-swatch');
+        swatch.title = section.label + ': ' + colorName;
+        preview.appendChild(swatch);
+    }
+}
+
+async function applySkin(context) {
+    const statusEl = document.getElementById(context === 'player' ? 'skinStatusPlayer' : 'skinStatusAdmin');
+    const neon = document.getElementById(context === 'player' ? 'neonTogglePlayer' : 'neonToggleAdmin').checked;
+    const colors = SKIN_SECTIONS.map(s => skinSelections[context][s.key]);
+    statusEl.textContent = 'Applying skin...';
+    statusEl.style.color = '#4dd9c0';
+    try {
+        const res = await fetch(`${API}/skin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, colors, neon }),
+        });
+        const data = await res.json();
+        if (!res.ok) { statusEl.style.color = '#f87171'; statusEl.textContent = data.error; return; }
+        statusEl.textContent = data.message;
+    } catch {
+        statusEl.style.color = '#f87171';
+        statusEl.textContent = 'Failed to apply skin.';
+    }
+}
+
+async function applySkinPlayer() { await applySkin('player'); }
+async function applySkinAdmin() { await applySkin('admin'); }
+
+async function resetSkin(context) {
+    const statusEl = document.getElementById(context === 'player' ? 'skinStatusPlayer' : 'skinStatusAdmin');
+    statusEl.textContent = 'Resetting skin...';
+    statusEl.style.color = '#4dd9c0';
+    try {
+        const res = await fetch(`${API}/skin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, colors: ['reset'], neon: false })
+        });
+        const data = await res.json();
+        statusEl.textContent = res.ok ? 'Skin reset successfully.' : (data.error || 'Reset failed.');
+        statusEl.style.color = res.ok ? '#4dd9c0' : '#f87171';
+    } catch {
+        statusEl.style.color = '#f87171';
+        statusEl.textContent = 'Failed to reset skin.';
+    }
+}
+
+async function resetSkinPlayer() { await resetSkin('player'); }
+async function resetSkinAdmin() { await resetSkin('admin'); }
+
 // 
 //  MAP ENGINE 
 // 
@@ -1143,12 +1306,12 @@ function drawMap(state) {
                 const c = wpStatic(m.lat, m.lng);
                 const rxPx = (m.rx / MAP_RANGE) * MAP_IMG_SIZE * scale;
                 const ryPx = (m.ry / MAP_RANGE) * MAP_IMG_SIZE * scale;
-                drawEllipse(ctx, c.x, c.y, rxPx, ryPx, m.rotDeg, 'rgba(251,191,36,4)', '#fbbf24', 1);
+                drawEllipse(ctx, c.x, c.y, rxPx, ryPx, m.rotDeg, 'rgba(251,191,36,8)', '#fbbf24', 1);
             } else if (m.kind === 'polygon') {
                 ctx.beginPath();
                 m.points.forEach((p, i) => { const c = wpStatic(p.lat, p.lng); i === 0 ? ctx.moveTo(c.x, c.y) : ctx.lineTo(c.x, c.y); });
                 ctx.closePath();
-                ctx.fillStyle = 'rgba(251,191,36,4)'; ctx.fill();
+                ctx.fillStyle = 'rgba(251,191,36,8)'; ctx.fill();
                 ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.stroke();
             }
             ctx.globalAlpha = 1;
