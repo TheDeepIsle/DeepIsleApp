@@ -72,16 +72,23 @@
         /* ── Skin Editor ── */
         .skin-section { margin-bottom: 16px; }
         .skin-section-label { font-size: 12px; color: #a0c4c0; margin-bottom: 6px; }
-        .skin-swatches { display: flex; gap: 6px; flex-wrap: wrap; }
-        .skin-swatch { width: 32px; height: 32px; border-radius: 6px; cursor: pointer; border: 2px solid rgba(255,255,255,0.3); transition: border-color 0.15s, transform 0.1s; }
+        .skin-swatches { display: flex; gap: 4px; flex-wrap: wrap; }
+        .skin-swatch { width: 22px; height: 22px; border-radius: 4px; cursor: pointer; border: 2px solid rgba(255,255,255,0.3); transition: border-color 0.15s, transform 0.1s; }
         .skin-swatch:hover { transform: scale(1.1); }
         .skin-swatch.selected { border-color: #fff; transform: scale(1.1); }
-        .skin-swatch.stock-swatch { background: repeating-linear-gradient(45deg, #2a2a2a, #2a2a2a 4px, #4a4a4a 4px, #4a4a4a 8px) !important; }
-        .neon-toggle { display: flex; align-items: center; gap: 10px; margin: 16px 0; font-size: 13px; color: #a0c4c0; }
-        .neon-toggle input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; }
+        .neon-toggle { display: flex; align-items: center; gap: 10px; margin: 4px 0; font-size: 13px; color: #a0c4c0; }
+        .neon-toggle input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; vertical-align: middle; margin: 0; }
         .skin-preview { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
         .skin-preview-swatch { width: 24px; height: 24px; border-radius: 4px; border: 1px solid #1e4a4a; }
-   
+   @media (max-width: 600px) {
+            .skin-swatch { width: 18px; height: 18px; }
+            .btn { font-size: 13px; padding: 10px; }
+        }
+        @media (max-width: 400px) {
+            .skin-swatch { width: 14px; height: 14px; border-radius: 3px; }
+            .btn { font-size: 12px; padding: 8px; }
+            .skin-section-label { font-size: 11px; }
+        }
    </style>
 </head>
 <body>
@@ -102,7 +109,10 @@
         <div class="player-tab active" id="tab-dashboard" onclick="switchPlayerTab('dashboard')"> Dashboard</div>
         <div class="player-tab" id="tab-storage" onclick="switchPlayerTab('storage')"> Dino Storage</div>
         <div class="player-tab" id="tab-map" onclick="switchPlayerTab('map')">Map</div>
-        <div class="player-tab" id="tab-skin" onclick="switchPlayerTab('skin')">Skin</div>
+        <div class="player-tab" id="tab-skin" onclick="switchPlayerTab('skin')">Skin Editor</div>
+        <div id="adminViewBtn" style="display:none; position:fixed; bottom:12px; right:12px; z-index:999;">
+            <button class="btn small" onclick="toggleView()">Admin View</button>
+        </div>
     </div>
 
     <!-- Dashboard Tab -->
@@ -121,7 +131,6 @@
     <!-- Dino Storage Tab -->
     <div id="playerTab-storage" style="display:none; flex:1; flex-direction:column; align-items:center; justify-content:flex-start; padding:32px; overflow-y:auto;">
         <div style="width:100%; max-width:500px;">
-            <h2 style="color:#4dd9c0; margin-bottom:8px;"> Dino Storage</h2>
             <p style="color:#a0c4c0; font-size:13px; margin-bottom:24px;">Store your dinosaur and load it back later. You must leave the server first.</p>
             <div style="display:flex; gap:8px; margin-bottom:12px;">
                 <input type="text" id="playerSlotNameInput" placeholder="Slot name (e.g. My Rex)" style="margin-bottom:0; flex:1; font-size:13px;" />
@@ -137,7 +146,6 @@
     <!-- Skin Tab (Player) -->
     <div id="playerTab-skin" style="display:none; flex:1; flex-direction:column; align-items:center; justify-content:flex-start; padding:32px; overflow-y:auto;">
         <div style="width:100%; max-width:520px;">
-            <h2 style="color:#4dd9c0; margin-bottom:8px;">Skin Editor</h2>
             <p style="color:#a0c4c0; font-size:13px; margin-bottom:24px;">Select a color for each section. You must be on the server for changes to apply.</p>
             <div id="skinSectionsPlayer"></div>
             <div class="neon-toggle">
@@ -157,15 +165,16 @@
         </div>
         <div id="playerMapLegend">
             <span style="color:#a0c4c0; margin-right:4px;">Layers:</span>
-            <div class="legend-item" id="pleg-sanctuary" onclick="togglePlayerLayer('sanctuary')"><div class="legend-rect" style="background:rgba(74,222,128,0.35); border:1px solid #4ade80;"></div> 
-            </div>
+            <div class="legend-item" id="pleg-sanctuary" onclick="togglePlayerLayer('sanctuary')"><div class="legend-rect" style="background:rgba(74,222,128,0.35); border:1px solid #4ade80;"></div> Sanctuaries</div>
             <div class="legend-item" id="pleg-migration" onclick="togglePlayerLayer('migration')"><div class="legend-rect" style="background:rgba(251,191,36,0.2); border:1px solid #fbbf24;"></div> Migration</div>
             <div class="legend-item" id="pleg-water" onclick="togglePlayerLayer('water')"><div class="legend-dot" style="background:#38bdf8;"></div> Water</div>
             <div class="legend-item" id="pleg-landmark" onclick="togglePlayerLayer('landmark')"><div class="legend-dot" style="background:#c084fc;"></div> Landmarks</div>
             <div class="legend-item" id="pleg-salt" onclick="togglePlayerLayer('salt')"><div class="legend-dot" style="background:#fb923c;"></div> Salt Licks</div>
             <div class="legend-item" id="pleg-gastro" onclick="togglePlayerLayer('gastro')"><div class="legend-dot" style="background:#a3e635;"></div> Gastroliths</div>
             <div class="legend-item" id="pleg-food" onclick="togglePlayerLayer('food')"><div class="legend-dot" style="background:#f9a8d4;"></div> AI Food</div>
-            <div class="legend-item" style="margin-left:auto;"><div class="legend-dot" style="background:#ff4444; border:2px solid #fff;"></div> You</div>
+            <div class="legend-item" id="pleg-patrol" onclick="togglePlayerLayer('patrol')"><div class="legend-rect" style="background:rgba(148,163,184,0.15); border:1px solid #94a3b8;"></div> Patrol Zones</div>
+            <div class="legend-item" id="pleg-area" onclick="togglePlayerLayer('area')"><div class="legend-rect" style="background:rgba(251,113,133,0.2); border:1px solid #fb7185;"></div> Areas</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#ff4444; border:2px solid #fff;"></div> You</div>
         </div>
     </div>
 </div>
@@ -173,7 +182,7 @@
 <!-- ADMIN VIEW -->
 <div id="appScreen">
     <div id="sidebar">
-        <div class="logo"> Deep Isle</div>
+        <div class="logo"> Deep Isle App</div>
         <div class="nav-item active" onclick="showPanel('home', this)"> Home</div>
         <div class="nav-item" onclick="showPanel('players', this)"> Players</div>
         <div class="nav-item" onclick="showPanel('voice', this)"> Voice</div>
@@ -183,6 +192,9 @@
         <div class="nav-item" onclick="showPanel('skin', this)">Skin Editor</div>
         <div class="spacer"></div>
         <div class="user-info" id="sidebarUser"></div>
+        <div style="padding: 8px 12px;">
+            <button class="btn small" onclick="toggleView()">Player View</button>
+        </div>
     </div>
     <div id="main">
         <div id="topbar">
@@ -196,7 +208,6 @@
 
             <!-- HOME -->
             <div class="panel active" id="panel-home">
-                <h2>Dashboard</h2>
                 <div class="stat-grid">
                     <div class="stat-card"><div class="label">Players Online</div><div class="value" id="statPlayers"></div></div>
                     <div class="stat-card"><div class="label">Server</div><div class="value" style="font-size:16px; padding-top:6px;" id="statServer"></div></div>
@@ -208,21 +219,17 @@
 
             <!-- PLAYERS -->
             <div class="panel" id="panel-players">
-                <h2>Players</h2>
                 <div id="playerList" style="font-size:14px; color:#a0c4c0;">Loading...</div>
             </div>
 
             <!-- VOICE -->
             <div class="panel" id="panel-voice">
-                <h2>Voice</h2>
-                <p style="color:#a0c4c0; margin-bottom:20px;">Connect to the LiveKit voice room.</p>
                 <button class="btn" onclick="joinVoice()">Join Voice</button>
                 <div id="voiceStatusAdmin" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
             </div>
 
             <!-- CONTROLS -->
             <div class="panel" id="panel-controls">
-                <h2>Server Controls</h2>
                 <div id="leadAdminControls" style="display:none; margin-bottom:24px;">
                     <p style="font-size:13px; color:#a0c4c0; margin-bottom:8px;">Server Power</p>
                     <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
@@ -248,7 +255,6 @@
 
             <!-- DINO STORAGE -->
             <div class="panel" id="panel-storage">
-                <h2>Dino Storage</h2>
                 <p style="color:#a0c4c0; font-size:13px; margin-bottom:20px;">Store your dinosaur progress and load it back later. You must leave the server before storing or loading a dino.</p>
                 <div style="display:flex; gap:8px; margin-bottom:20px; align-items:center;">
                     <input type="text" id="slotNameInput" placeholder="Slot name (e.g. My Rex)" style="margin-bottom:0; flex:1;" />
@@ -262,7 +268,6 @@
             
             <!-- SKIN EDITOR -->
             <div class="panel" id="panel-skin">
-                <h2>Skin Editor</h2>
                 <p style="color:#a0c4c0; font-size:13px; margin-bottom:24px;">Select a color for each section. You must be on the server for changes to apply.</p>
                 <div id="skinSectionsAdmin"></div>
                 <div class="neon-toggle">
@@ -270,7 +275,7 @@
                     <label for="neonToggleAdmin">Neon Mode</label>
                 </div>
                 
-                <button class="btn" style="width:200px; margin-top:16px;" onclick="applySkinAdmin()">Apply Skin</button>
+                <button class="btn" style="max-width:200px; margin-top:16px;" onclick="applySkinAdmin()">Apply Skin</button>
                 <div id="skinStatusAdmin" style="font-size:13px; color:#4dd9c0; margin-top:12px;"></div>
             </div>
 
@@ -390,6 +395,21 @@ async function refreshPlayerCount() {
         const data = await res.json();
         document.getElementById('playerCount').textContent = Object.keys(data.players || {}).length;
     } catch { document.getElementById('playerCount').textContent = ''; }
+}
+
+let inPlayerView = false;
+function toggleView() {
+    if (!inPlayerView) {
+        document.getElementById('appScreen').style.display = 'none';
+        document.getElementById('playerScreen').style.display = 'flex';
+        document.getElementById('adminViewBtn').style.display = 'block';
+        inPlayerView = true;
+    } else {
+        document.getElementById('playerScreen').style.display = 'none';
+        document.getElementById('appScreen').style.display = 'flex';
+        document.getElementById('adminViewBtn').style.display = 'none';
+        inPlayerView = false;
+    }
 }
 
 //  Admin View 
@@ -831,7 +851,7 @@ async function loadPlayerStorageSlots() {
                 <span> ${slot.slot}</span>
                 <div style="display:flex; gap:6px;">
                     <button class="btn small" onclick="loadDinoPlayer('${slot.slot}')"> Load</button>
-                    <button class="btn small danger" onclick="deleteDinoPlayer('${slot.slot}')"></button>
+                    <button class="btn small danger" onclick="deleteDinoPlayer('${slot.slot}')"> Delete</button>
                 </div>
             </div>
         `).join('');
@@ -879,7 +899,6 @@ async function deleteDinoPlayer(slotName) {
 
 // ── Skin Editor ───────────────────────────────────────────────────────────────
 const SKIN_COLORS = [
-    { name: 'stock',  hex: null },
     { name: 'red',    hex: '#c41a1a' },
     { name: 'orange', hex: '#c46b1a' },
     { name: 'yellow', hex: '#c4b41a' },
@@ -891,6 +910,15 @@ const SKIN_COLORS = [
     { name: 'grey',   hex: '#6b6b6b' },
     { name: 'white',  hex: '#e0e0e0' },
     { name: 'black',  hex: '#1a1a1a' },
+    { name: 'tan',      hex: '#b89960' },
+    { name: 'sand',     hex: '#c4b478' },
+    { name: 'olive',    hex: '#5a612a' },
+    { name: 'rust',     hex: '#8f3d14' },
+    { name: 'clay',     hex: '#a35630' },
+    { name: 'moss',     hex: '#324518' },
+    { name: 'slate',    hex: '#3d4d5c' },
+    { name: 'cream',    hex: '#ebe0b8' },
+    { name: 'charcoal', hex: '#252525' },
 ];
 
 const SKIN_SECTIONS = [
@@ -918,9 +946,8 @@ function buildSkinEditor(containerId, context) {
         for (const color of SKIN_COLORS) {
             const swatch = document.createElement('div');
             swatch.className = 'skin-swatch' + (color.name === SKIN_COLORS[0].name ? ' selected' : '');
-            if (color.hex) swatch.style.background = color.hex;
-            else swatch.classList.add('stock-swatch');
-            swatch.title = color.name === 'stock' ? 'Stock (keep original)' : color.name;
+            swatch.style.background = color.hex;
+            swatch.title = color.name;
             swatch.onclick = () => selectSkinColor(context, section.key, color.name, swatch, swatchContainer);
             swatchContainer.appendChild(swatch);
         }

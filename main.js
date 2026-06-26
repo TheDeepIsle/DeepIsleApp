@@ -7,8 +7,8 @@ let mainWindow;
 
 function createWindow() {
     mainWindow = new BrowserWindow({
-        width: 900,
-        height: 650,
+        width: 775,
+        height: 625,
         icon: path.join(__dirname, 'icon.ico'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -18,6 +18,7 @@ function createWindow() {
         resizable: true,
     });
     mainWindow.loadFile('src/index.html');
+    mainWindow.setMenuBarVisibility(false);
     try {
         mainWindow.setIcon(path.join(__dirname, 'icon.ico'));
     } catch {}
@@ -49,6 +50,7 @@ ipcMain.handle('open-steam-auth', async (_event, authUrl) => {
             height: 720,
             parent: mainWindow,
             modal: true,
+            autoHideMenuBar: true,
             backgroundColor: '#0f1117',
             webPreferences: {
                 contextIsolation: true,
