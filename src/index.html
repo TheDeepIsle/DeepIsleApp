@@ -165,15 +165,14 @@
         </div>
         <div id="playerMapLegend">
             <span style="color:#a0c4c0; margin-right:4px;">Layers:</span>
+            <div class="legend-item" id="pleg-water" onclick="togglePlayerLayer('water')"><div class="legend-rect" style="background:rgba(56,189,248,0.35); border:1px solid #38bdf8;"></div> Water</div>
+            <div class="legend-item" id="leg-migration" onclick="toggleLayer('migration')"><div class="legend-rect" style="background:rgba(6,182,212,0.35); border:1px solid #06b6d4;"></div> Migration <span style="font-size:10px; color:#f59e0b;">● MMZ</span></div>
             <div class="legend-item" id="pleg-sanctuary" onclick="togglePlayerLayer('sanctuary')"><div class="legend-rect" style="background:rgba(74,222,128,0.35); border:1px solid #4ade80;"></div> Sanctuaries</div>
-            <div class="legend-item" id="pleg-migration" onclick="togglePlayerLayer('migration')"><div class="legend-rect" style="background:rgba(251,191,36,0.2); border:1px solid #fbbf24;"></div> Migration</div>
-            <div class="legend-item" id="pleg-water" onclick="togglePlayerLayer('water')"><div class="legend-dot" style="background:#38bdf8;"></div> Water</div>
-            <div class="legend-item" id="pleg-landmark" onclick="togglePlayerLayer('landmark')"><div class="legend-dot" style="background:#c084fc;"></div> Landmarks</div>
+            <div class="legend-item" id="pleg-patrol" onclick="togglePlayerLayer('patrol')"><div class="legend-rect" style="background:rgba(148,163,184,0.15); border:1px solid #94a3b8;"></div> Patrol Zones</div>
+            <div class="legend-item" id="pleg-landmark" onclick="togglePlayerLayer('landmark')"><div class="legend-dot" style="background:#10b981;"></div> Locations</div>
             <div class="legend-item" id="pleg-salt" onclick="togglePlayerLayer('salt')"><div class="legend-dot" style="background:#fb923c;"></div> Salt Licks</div>
             <div class="legend-item" id="pleg-gastro" onclick="togglePlayerLayer('gastro')"><div class="legend-dot" style="background:#a3e635;"></div> Gastroliths</div>
             <div class="legend-item" id="pleg-food" onclick="togglePlayerLayer('food')"><div class="legend-dot" style="background:#f9a8d4;"></div> AI Food</div>
-            <div class="legend-item" id="pleg-patrol" onclick="togglePlayerLayer('patrol')"><div class="legend-rect" style="background:rgba(148,163,184,0.15); border:1px solid #94a3b8;"></div> Patrol Zones</div>
-            <div class="legend-item" id="pleg-area" onclick="togglePlayerLayer('area')"><div class="legend-rect" style="background:rgba(251,113,133,0.2); border:1px solid #fb7185;"></div> Areas</div>
             <div class="legend-item"><div class="legend-dot" style="background:#ff4444; border:2px solid #fff;"></div> You</div>
         </div>
     </div>
@@ -288,15 +287,14 @@
                 <div id="mapTooltip"></div>
                 <div id="mapLegend">
                     <span style="color:#a0c4c0; margin-right:4px;">Layers:</span>
+                    <div class="legend-item" id="leg-water" onclick="toggleLayer('water')"><div class="legend-rect" style="background:rgba(56,189,248,0.35); border:1px solid #38bdf8;"></div> Water</div>
+                    <div class="legend-item" id="pleg-migration" onclick="togglePlayerLayer('migration')"><div class="legend-rect" style="background:rgba(6,182,212,0.35); border:1px solid #06b6d4;"></div> Migration <span style="font-size:10px; color:#f59e0b;">● MMZ</span></div>
                     <div class="legend-item" id="leg-sanctuary" onclick="toggleLayer('sanctuary')"><div class="legend-rect" style="background:rgba(74,222,128,0.35); border:1px solid #4ade80;"></div> Sanctuaries</div>
-                    <div class="legend-item" id="leg-migration" onclick="toggleLayer('migration')"><div class="legend-rect" style="background:rgba(251,191,36,0.2); border:1px solid #fbbf24;"></div> Migration</div>
                     <div class="legend-item" id="leg-patrol" onclick="toggleLayer('patrol')"><div class="legend-rect" style="background:rgba(148,163,184,0.1); border:1px solid #64748b;"></div> Patrol Zones</div>
-                    <div class="legend-item" id="leg-water" onclick="toggleLayer('water')"><div class="legend-dot" style="background:#38bdf8;"></div> Water</div>
-                    <div class="legend-item" id="leg-landmark" onclick="toggleLayer('landmark')"><div class="legend-dot" style="background:#c084fc;"></div> Landmarks</div>
+                    <div class="legend-item" id="leg-landmark" onclick="toggleLayer('landmark')"><div class="legend-dot" style="background:#10b981;"></div> Locations</div>
                     <div class="legend-item" id="leg-salt" onclick="toggleLayer('salt')"><div class="legend-dot" style="background:#fb923c;"></div> Salt Licks</div>
                     <div class="legend-item" id="leg-gastro" onclick="toggleLayer('gastro')"><div class="legend-dot" style="background:#a3e635;"></div> Gastroliths</div>
                     <div class="legend-item" id="leg-food" onclick="toggleLayer('food')"><div class="legend-rect" style="background:#f9a8d4; border-radius:2px;"></div> AI Food</div>
-                    <div class="legend-item" id="leg-area" onclick="toggleLayer('area')"><div class="legend-dot" style="background:#94a3b8;"></div> Areas</div>
                     <div class="legend-item" id="leg-players" onclick="toggleLayer('players')"><div class="legend-dot" style="background:#ff4444;"></div> Players</div>
                 </div>
             </div>
@@ -1028,202 +1026,109 @@ async function resetSkinAdmin() { await resetSkin('admin'); }
 //  MAP ENGINE 
 // 
 
-// Coordinate system: lat/lng -600 to +600, image 1000x1000
-const MAP_IMG_SIZE = 1000;
-const MAP_MIN = -600;
-const MAP_MAX = 600;
-const MAP_RANGE = 1200;
-
-function worldToCanvas(lat, lng, offsetX, offsetY, scale) {
-    const px = ((lng - MAP_MIN) / MAP_RANGE) * MAP_IMG_SIZE;
-    const py = ((lat - MAP_MIN) / MAP_RANGE) * MAP_IMG_SIZE;
+// Coordinate system: game UE units -> canvas pixels (7800x7817)
+const MAP_IMG_W = 7800;
+const MAP_IMG_H = 7817;
+function gameToCanvas(gameX, gameY, offsetX, offsetY, scale) {
+    const px = (gameY / 1000 + 505) * 2.5 / 2780 * MAP_IMG_W;
+    const py = (gameX / 1000 + 607) * 2.5 / 2790 * MAP_IMG_H;
     return { x: offsetX + px * scale, y: offsetY + py * scale };
 }
-
-function canvasToWorld(cx, cy, offsetX, offsetY, scale) {
+function canvasToGame(cx, cy, offsetX, offsetY, scale) {
     const px = (cx - offsetX) / scale;
     const py = (cy - offsetY) / scale;
-    const lng = (px / MAP_IMG_SIZE) * MAP_RANGE + MAP_MIN;
-    const lat = MAP_MAX - (py / MAP_IMG_SIZE) * MAP_RANGE;
-    return { lat: Math.round(lat * 10) / 10, lng: Math.round(lng * 10) / 10 };
+    const gameY = (px / MAP_IMG_W * 2780 / 2.5 - 505) * 1000;
+    const gameX = (py / MAP_IMG_H * 2790 / 2.5 - 607) * 1000;
+    return { gameX: Math.round(gameX), gameY: Math.round(gameY) };
 }
 
 //  Map Data 
 const AI_FOOD_TYPES = ['AI_Boar.png','AI_Deer.png','AI_Rabbit.png','AI_Chicken.png','AI_Goat.png','AI_Bullfrog.png','AI_Seaturtle.png'];
 
 const MAP_DATA = {
-    landmarks: [
-        { lat: 104, lng: -43, name: "Central Dome" },
-        { lat: -294, lng: 64, name: "Dam" },
-        { lat: 144, lng: 243, name: "Estuary Weir" },
-        { lat: -199, lng: 10, name: "Highland Bridge" },
-        { lat: 237, lng: -204, name: "Lagoon" },
-        { lat: -217, lng: 356, name: "Log Bridge" },
-        { lat: -53, lng: 236, name: "Mad Grotto" },
-        { lat: 191, lng: 47, name: "Pipes" },
-        { lat: -224, lng: 545, name: "Radio Tower" },
-        { lat: 270, lng: 215, name: "Shallows Beach" },
-        { lat: 138, lng: 118, name: "Swamp Tunnel" },
-        { lat: -118, lng: -229, name: "Twin Bridges" },
-        { lat: -268, lng: 250, name: "Volcano" },
-        { lat: -425, lng: 197, name: "Site C14" },
-        { lat: -336, lng: 242, name: "Site E15" },
-        { lat: -253, lng: 40, name: "Site F11" },
-        { lat: -109, lng: 81, name: "Site I12" },
-        { lat: 30, lng: 253, name: "Site K15" },
-    ],
-    patrols: [
-        { name: "Delta", circles: [{lat:-44,lng:174,r:14},{lat:-16,lng:127,r:15},{lat:11,lng:187,r:15},{lat:57,lng:243,r:15},{lat:79,lng:206,r:15}] },
-        { name: "East", circles: [{lat:-155,lng:541,r:15},{lat:-62,lng:503,r:15},{lat:-130,lng:491,r:15}] },
-        { name: "Endorheic", circles: [{lat:191,lng:196,r:15}] },
-        { name: "Fork", circles: [{lat:-183,lng:267,r:15},{lat:-112,lng:224,r:15}] },
-        { name: "Highlands", circles: [{lat:-163,lng:-7,r:15},{lat:-167,lng:-61,r:15},{lat:-142,lng:-112,r:15},{lat:-52,lng:-132,r:13}] },
-        { name: "Mudflats", circles: [{lat:146,lng:-295,r:15}] },
-        { name: "North", circles: [{lat:-419,lng:369,r:15},{lat:-368,lng:384,r:15},{lat:-344,lng:345,r:12},{lat:-434,lng:263,r:15},{lat:-471,lng:300,r:15}] },
-        { name: "Northern", circles: [{lat:-343,lng:151,r:15},{lat:-282,lng:126,r:15}] },
-        { name: "NE", circles: [{lat:-475,lng:438,r:15}] },
-        { name: "Pits", circles: [{lat:183,lng:-370,r:15},{lat:233,lng:-346,r:15},{lat:238,lng:-282,r:15},{lat:277,lng:-309,r:15},{lat:275,lng:-254,r:15},{lat:343,lng:-247,r:10},{lat:310,lng:-420,r:15}] },
-        { name: "Port", circles: [{lat:-292,lng:444,r:15}] },
-        { name: "Radio", circles: [{lat:-225,lng:513,r:15}] },
-        { name: "Sandbank", circles: [{lat:-13,lng:393,r:15},{lat:30,lng:335,r:15},{lat:80,lng:310,r:15}] },
-        { name: "South", circles: [{lat:135,lng:-231,r:15},{lat:175,lng:-154,r:15},{lat:267,lng:-187,r:15}] },
-        { name: "Southern", circles: [{lat:303,lng:-101,r:15},{lat:352,lng:-52,r:15},{lat:403,lng:11,r:15}] },
-        { name: "Swamps", circles: [{lat:188,lng:124,r:15},{lat:233,lng:139,r:15},{lat:219,lng:82,r:15},{lat:232,lng:25,r:15},{lat:285,lng:109,r:15},{lat:336,lng:158,r:15},{lat:341,lng:53,r:15},{lat:308,lng:-2,r:15}] },
-        { name: "Tide", circles: [{lat:-51,lng:453,r:15}] },
-        { name: "West", circles: [{lat:23,lng:-327,r:15},{lat:-9,lng:-265,r:15},{lat:58,lng:-207,r:15},{lat:29,lng:-151,r:15}] },
+    locations: [
+        { name: "Delta", x: 33000, y: 177000 },
+        { name: "Delta Bay", x: 211000, y: 338000 },
+        { name: "East Coast", x: -97000, y: 538000 },
+        { name: "Eastern Lake", x: -136000, y: 416000 },
+        { name: "Forks Plains", x: -119000, y: 246000 },
+        { name: "Highland", x: -61000, y: -71000 },
+        { name: "Jungle I Sector", x: -96000, y: 125000 },
+        { name: "Mudflats", x: 109000, y: -322000 },
+        { name: "NE Cape", x: -460000, y: 433000 },
+        { name: "North Bay", x: -410000, y: 14000 },
+        { name: "North Plains", x: -345000, y: 353000 },
+        { name: "Northern Jungle", x: -336000, y: 148000 },
+        { name: "NW Ridge", x: -257000, y: -156000 },
+        { name: "Port", x: -300000, y: 545000 },
+        { name: "Sandbank Bay", x: 74000, y: 399000 },
+        { name: "South Plains", x: 185000, y: -182000 },
+        { name: "Southern Beach (E)", x: 409000, y: 112000 },
+        { name: "Southern Beach (W)", x: 406000, y: -53000 },
+        { name: "Swamps", x: 302000, y: 51000 },
+        { name: "The Pit", x: 311000, y: -355000 },
+        { name: "Tide Pool", x: -36000, y: 455000 },
+        { name: "West Coast", x: -21000, y: -393000 },
+        { name: "West Rail", x: -4000, y: -238000 },
+        { name: "Water Access", x: -214000, y: 87000 },
     ],
     sanctuaries: [
-        { name: "Delta", lat: -18, lng: 228, rx: 11, ry: 11, rotDeg: 0 },
-        { name: "EastLake", lat: -173, lng: 436, rx: 8, ry: 11, rotDeg: -9 },
-        { name: "Highland", lat: -60, lng: -154, rx: 8, ry: 8, rotDeg: 0 },
-        { name: "Mudflats", lat: 171, lng: -329, rx: 10, ry: 8, rotDeg: 0 },
-        { name: "South", lat: 229, lng: -176, rx: 7, ry: 10, rotDeg: -20 },
-        { name: "Swamp", lat: 282, lng: 28, rx: 10, ry: 8, rotDeg: 16 },
-        { name: "Verdant", lat: -272, lng: 182, rx: 8, ry: 8, rotDeg: 0 },
+        { name: "Delta", x: -18000, y: 228000, rx: 11000, ry: 11000, rotDeg: 0 },
+        { name: "EastLake", x: -173000, y: 436000, rx: 8000, ry: 11000, rotDeg: -9 },
+        { name: "Highland", x: -60000, y: -154000, rx: 8000, ry: 8000, rotDeg: 0 },
+        { name: "Mudflats", x: 171000, y: -329000, rx: 10000, ry: 8000, rotDeg: 0 },
+        { name: "South", x: 229000, y: -176000, rx: 7000, ry: 10000, rotDeg: -20 },
+        { name: "Swamp", x: 282000, y: 28000, rx: 10000, ry: 8000, rotDeg: 16 },
+        { name: "Verdant", x: -272000, y: 182000, rx: 8000, ry: 8000, rotDeg: 0 },
     ],
     migrations: [
-        { name: "Delta", kind: "ellipse", lat: 29, lng: 184, rx: 92, ry: 55, rotDeg: 45 },
-        { name: "East", kind: "ellipse", lat: -22, lng: 294, rx: 45, ry: 60, rotDeg: -5 },
-        { name: "Mudflats", kind: "ellipse", lat: 155, lng: -290, rx: 55, ry: 70, rotDeg: 5 },
-        { name: "North", kind: "ellipse", lat: -358, lng: 354, rx: 55, ry: 77, rotDeg: -30 },
-        { name: "Northern", kind: "ellipse", lat: -336, lng: 180, rx: 50, ry: 65, rotDeg: 13 },
-        { name: "South", kind: "ellipse", lat: 271, lng: -283, rx: 110, ry: 44, rotDeg: 46 },
-        { name: "Swamp", kind: "ellipse", lat: 295, lng: 60, rx: 80, ry: 65, rotDeg: 0 },
-        { name: "Tide", kind: "ellipse", lat: -40, lng: 451, rx: 44, ry: 45, rotDeg: 0 },
-        { name: "West", kind: "ellipse", lat: 30, lng: -252, rx: 50, ry: 45, rotDeg: 45 },
-        { name: "Highland", kind: "polygon", points: [
-            {lat:-149,lng:-39},{lat:-153,lng:-12},{lat:-119,lng:21},{lat:-85,lng:-2},
-            {lat:-70,lng:-26},{lat:-79,lng:-86},{lat:-56,lng:-102},{lat:-35,lng:-78},
-            {lat:-9,lng:-122},{lat:-61,lng:-164},{lat:-149,lng:-39}
-        ]},
+        { name: "Delta (MMZ)", mmz: true, kind: "path", points: [[-77000,185000],[-97000,220000],[-108000,256000],[-101000,264000],[-93000,265000],[-85000,261000],[-63000,227000],[-32000,192000],[-17000,190000],[6000,203000],[42000,250000],[58000,259000],[75000,255000],[116000,255000],[126000,244000],[133000,230000],[129000,216000],[99000,213000],[89000,200000],[83000,175000],[68000,149000],[50000,134000],[6000,121000],[-24000,120000],[-77000,185000]] },
+        { name: "East Jungle", mmz: false, kind: "polygon", points: [[-97000,252000],[-97000,326000],[69000,326000],[69000,252000],[-97000,252000]] },
+        { name: "Highland", mmz: false, kind: "polygon", points: [[-162000,-19000],[-107000,27000],[-7000,-120000],[-61000,-162000],[-162000,-19000]] },
+        { name: "Mudflats", mmz: false, kind: "ellipse", x: 155000, y: -291000, rx: 67000, ry: 70000, rotDeg: 5 },
+        { name: "North Lake (MMZ)", mmz: true, kind: "ellipse", x: -358000, y: 354000, rx: 89000, ry: 85000, rotDeg: -35 },
+        { name: "Northern Jungle", mmz: false, kind: "ellipse", x: -336000, y: 180000, rx: 50000, ry: 65000, rotDeg: 13 },
+        { name: "South Plains (MMZ)", mmz: true, kind: "ellipse", x: 271000, y: -283000, rx: 110000, ry: 44000, rotDeg: 46 },
+        { name: "Swamp", mmz: false, kind: "polygon", points: [[227000,-30000],[227000,140000],[361000,140000],[361000,-30000],[227000,-30000]] },
+        { name: "Tide Beach", mmz: false, kind: "ellipse", x: -40000, y: 450000, rx: 60000, ry: 60000, rotDeg: 0 },
+        { name: "West Rail Access", mmz: false, kind: "ellipse", x: 27000, y: -231000, rx: 86000, ry: 78000, rotDeg: 19 },
     ],
-    water: [
-        { name: "Cascades", lat: -186, lng: 182 },
-        { name: "Coastal Pond", lat: 50, lng: 330 },
-        { name: "Dam Lake", lat: -267, lng: 79 },
-        { name: "Delta", lat: 43, lng: 189 },
-        { name: "Delta River", lat: -84, lng: 254 },
-        { name: "East Lake", lat: -130, lng: 460 },
-        { name: "Forks Pond", lat: -179, lng: 238 },
-        { name: "Gorge River", lat: 135, lng: -198 },
-        { name: "Highland Lake N", lat: -135, lng: -22 },
-        { name: "Highland Lake S", lat: -92, lng: -65 },
-        { name: "Hollow Falls", lat: -171, lng: 344 },
-        { name: "Jungle Pond", lat: -2, lng: 82 },
-        { name: "Landslid Lake", lat: -80, lng: -226 },
-        { name: "North Lake", lat: -374, lng: 324 },
-        { name: "Pit Pond", lat: 281, lng: -332 },
-        { name: "Plains River", lat: -290, lng: 368 },
-        { name: "Rock Pond", lat: 319, lng: -252 },
-        { name: "Endorheic", lat: 199, lng: 179 },
-        { name: "South Puddle", lat: 200, lng: -352 },
-        { name: "Swamp East", lat: 254, lng: 106 },
-        { name: "Swamp West", lat: 276, lng: -30 },
-        { name: "Verdant Pond", lat: -255, lng: 167 },
-        { name: "West Pond", lat: 20, lng: -277 },
-        { name: "Pygmy's Puddle", lat: 82, lng: -244 },
-        { name: "Shade Puddle", lat: 90, lng: -128 },
-    ],
-    areas: [
-        { name: "Delta", lat: 33, lng: 177 },
-        { name: "East Coast", lat: -97, lng: 538 },
-        { name: "Eastern Jungle", lat: -136, lng: 416 },
-        { name: "Highland", lat: -61, lng: -71 },
-        { name: "Central Jungle", lat: -96, lng: 125 },
-        { name: "North Plains", lat: -345, lng: 353 },
-        { name: "Northern Jungle", lat: -336, lng: 148 },
-        { name: "Ridges", lat: -257, lng: -156 },
-        { name: "South Plains", lat: 185, lng: -182 },
-        { name: "Swamps", lat: 302, lng: 51 },
-        { name: "The Pit", lat: 308, lng: -316 },
-        { name: "West Rail", lat: -4, lng: -238 },
-        { name: "Water Access", lat: -214, lng: 87 },
-    ],
-    salt: [
-        {lat:-438,lng:230},{lat:-325,lng:234},{lat:-270,lng:366},{lat:-252,lng:543},
-        {lat:-234,lng:52},{lat:-205,lng:421},{lat:-180,lng:157},{lat:-145,lng:319},
-        {lat:-114,lng:-153},{lat:-61,lng:-21},{lat:-55,lng:160},{lat:-51,lng:457},
-        {lat:-25,lng:-302},{lat:40,lng:-91},{lat:59,lng:278},{lat:73.7,lng:55.7},
-        {lat:126,lng:-285},{lat:141,lng:384},{lat:178,lng:122},{lat:288,lng:13},
-        {lat:309,lng:24},{lat:404,lng:34},
+    patrols: [
+        { name: "Delta", circles: [{x:-44000,y:174000,r:14000},{x:-16000,y:127000,r:15000},{x:11000,y:187000,r:15000},{x:57000,y:243000,r:15000},{x:79000,y:206000,r:15000}] },
+        { name: "East", circles: [{x:-155000,y:541000,r:15000},{x:-62000,y:503000,r:15000},{x:-130000,y:491000,r:15000}] },
+        { name: "Endorheic", circles: [{x:191000,y:196000,r:15000}] },
+        { name: "Fork", circles: [{x:-183000,y:267000,r:15000},{x:-112000,y:224000,r:15000}] },
+        { name: "Highlands", circles: [{x:-163000,y:-7000,r:15000},{x:-167000,y:-61000,r:15000},{x:-142000,y:-112000,r:15000},{x:-52000,y:-132000,r:13000}] },
+        { name: "Mudflats", circles: [{x:146000,y:-295000,r:15000}] },
+        { name: "North", circles: [{x:-419000,y:369000,r:15000},{x:-368000,y:384000,r:15000},{x:-344000,y:345000,r:12000},{x:-434000,y:263000,r:15000},{x:-471000,y:300000,r:15000}] },
+        { name: "Northern", circles: [{x:-343000,y:151000,r:15000},{x:-282000,y:126000,r:15000}] },
+        { name: "NE", circles: [{x:-475000,y:438000,r:15000}] },
+        { name: "Pits", circles: [{x:183000,y:-370000,r:15000},{x:233000,y:-346000,r:15000},{x:238000,y:-282000,r:15000},{x:277000,y:-309000,r:15000},{x:275000,y:-254000,r:15000},{x:343000,y:-247000,r:10000},{x:310000,y:-420000,r:15000}] },
+        { name: "Port", circles: [{x:-292000,y:444000,r:15000}] },
+        { name: "Radio", circles: [{x:-225000,y:513000,r:15000}] },
+        { name: "Sandbank", circles: [{x:-13000,y:393000,r:15000},{x:30000,y:335000,r:15000},{x:80000,y:310000,r:15000}] },
+        { name: "South", circles: [{x:135000,y:-231000,r:15000},{x:175000,y:-154000,r:15000},{x:267000,y:-187000,r:15000}] },
+        { name: "Southern", circles: [{x:303000,y:-101000,r:15000},{x:352000,y:-52000,r:15000},{x:403000,y:11000,r:15000}] },
+        { name: "Swamps", circles: [{x:188000,y:124000,r:15000},{x:233000,y:139000,r:15000},{x:219000,y:82000,r:15000},{x:232000,y:25000,r:15000},{x:285000,y:109000,r:15000},{x:336000,y:158000,r:15000},{x:341000,y:53000,r:15000},{x:308000,y:-2000,r:15000}] },
+        { name: "Tide", circles: [{x:-51000,y:453000,r:15000}] },
+        { name: "West", circles: [{x:23000,y:-327000,r:15000},{x:-9000,y:-265000,r:15000},{x:58000,y:-207000,r:15000},{x:29000,y:-151000,r:15000}] },
     ],
     gastro: [
-        {lat:-446,lng:462},{lat:-432,lng:430},{lat:-424,lng:317},{lat:-392,lng:319},
-        {lat:-387,lng:194},{lat:-385,lng:328},{lat:-372,lng:229},{lat:-362,lng:347},
-        {lat:-350,lng:356},{lat:-344,lng:364},{lat:-333,lng:295},{lat:-327,lng:373},
-        {lat:-316,lng:312},{lat:-303,lng:227},{lat:-302,lng:474},{lat:-290,lng:490},
-        {lat:-289,lng:84},{lat:-289,lng:288},{lat:-288,lng:61},{lat:-281,lng:492},
-        {lat:-280,lng:185},{lat:-276,lng:193},{lat:-265,lng:210},{lat:-252,lng:-116},
-        {lat:-252,lng:290},{lat:-249,lng:544},{lat:-241,lng:116},{lat:-236,lng:315},
-        {lat:-229,lng:14},{lat:-227,lng:222},{lat:-225,lng:306},{lat:-224,lng:-14},
-        {lat:-209,lng:531},{lat:-208,lng:-12},{lat:-205,lng:265},{lat:-201,lng:-6},
-        {lat:-199,lng:509},{lat:-197,lng:-170},{lat:-195,lng:450},{lat:-180,lng:-6},
-        {lat:-172,lng:427},{lat:-170,lng:258},{lat:-168,lng:178},{lat:-166,lng:-1},
-        {lat:-165,lng:-49},{lat:-161,lng:359},{lat:-158,lng:-2},{lat:-156,lng:-39},
-        {lat:-156,lng:281},{lat:-154,lng:531},{lat:-153,lng:295},{lat:-149,lng:-66},
-        {lat:-149,lng:-35},{lat:-149,lng:274},{lat:-149,lng:467},{lat:-147,lng:-7},
-        {lat:-145,lng:-39},{lat:-141,lng:-169},{lat:-127,lng:-188},{lat:-124,lng:4},
-        {lat:-122,lng:316},{lat:-120,lng:-46},{lat:-107,lng:-229},{lat:-106,lng:-258},
-        {lat:-106,lng:511},{lat:-103,lng:271},{lat:-102,lng:310},{lat:-96,lng:209},
-        {lat:-96,lng:218},{lat:-93,lng:-3},{lat:-85,lng:110},{lat:-75,lng:-14},
-        {lat:-74,lng:505},{lat:-73,lng:270},{lat:-72,lng:-133},{lat:-71,lng:434},
-        {lat:-69,lng:2},{lat:-64,lng:-167},{lat:-62,lng:219},{lat:-62,lng:440},
-        {lat:-59,lng:-129},{lat:-59,lng:191},{lat:-58,lng:-98},{lat:-55,lng:-93},
-        {lat:-51,lng:-159},{lat:-51,lng:434},{lat:-48,lng:198},{lat:-48,lng:454},
-        {lat:-47,lng:224},{lat:-31,lng:215},{lat:-27,lng:226},{lat:-23,lng:147},
-        {lat:-12,lng:152},{lat:-8,lng:195},{lat:0,lng:0},{lat:0,lng:344},
-        {lat:3,lng:-361},{lat:7,lng:416},{lat:8,lng:215},{lat:9,lng:-283},
-        {lat:10,lng:208},{lat:11,lng:-270},{lat:13,lng:275},{lat:22,lng:178},
-        {lat:38,lng:-57},{lat:40,lng:137},{lat:42,lng:-66},{lat:57,lng:145},
-        {lat:68,lng:222},{lat:70,lng:230},{lat:72,lng:154},{lat:79,lng:322},
-        {lat:80,lng:147},{lat:81,lng:225},{lat:83,lng:184},{lat:101,lng:219},
-        {lat:107,lng:201},{lat:122,lng:237},{lat:155,lng:-321},{lat:164,lng:-386},
-        {lat:171,lng:-321},{lat:175,lng:167},{lat:176,lng:-393},{lat:177,lng:-203},
-        {lat:180,lng:-393},{lat:182,lng:-393},{lat:184,lng:85},{lat:184,lng:127},
-        {lat:194,lng:-185},{lat:198,lng:53},{lat:198,lng:131},{lat:215,lng:-259},
-        {lat:216,lng:72},{lat:221,lng:-396},{lat:232,lng:-172},{lat:236,lng:60},
-        {lat:239,lng:-397},{lat:251,lng:-183},{lat:254,lng:-156},{lat:255,lng:-395},
-        {lat:257,lng:56},{lat:262,lng:-187},{lat:272,lng:-65},{lat:274,lng:-176},
-        {lat:279,lng:104},{lat:280,lng:-157},{lat:285,lng:30},{lat:292,lng:-110},
-        {lat:293,lng:-400},{lat:300,lng:116},{lat:301,lng:41},{lat:307,lng:-139},
-        {lat:327,lng:-30},{lat:335,lng:-146},{lat:337,lng:-146},{lat:343,lng:170},
-        {lat:348,lng:-369},{lat:348,lng:177},{lat:349,lng:175},{lat:350,lng:-178},
-        {lat:350,lng:166},{lat:356,lng:172},{lat:361,lng:-342},{lat:365,lng:-261},
-        {lat:367,lng:-187},{lat:368,lng:-275},{lat:369,lng:70},{lat:370,lng:-283},
-        {lat:370,lng:111},{lat:371,lng:-295},{lat:374,lng:29},{lat:375,lng:30},
-        {lat:381,lng:-56},{lat:384,lng:-221},{lat:394,lng:87},{lat:396,lng:-252},
+        {x:-446000,y:462000},{x:-444000,y:415000},{x:-432000,y:430000},{x:-424000,y:317000},{x:-392000,y:319000},{x:-387000,y:194000},{x:-385000,y:328000},{x:-372000,y:229000},{x:-362000,y:347000},{x:-350000,y:356000},{x:-344000,y:364000},{x:-333000,y:295000},{x:-331000,y:268000},{x:-327000,y:373000},{x:-316000,y:312000},{x:-303000,y:227000},{x:-302000,y:474000},{x:-295000,y:187000},{x:-290000,y:490000},{x:-289000,y:84000},{x:-289000,y:288000},{x:-288000,y:61000},{x:-287000,y:209000},{x:-281000,y:492000},{x:-280000,y:185000},{x:-279000,y:190000},{x:-276000,y:193000},{x:-265000,y:210000},{x:-252000,y:-116000},{x:-252000,y:290000},{x:-249000,y:544000},{x:-248000,y:212000},{x:-241000,y:116000},{x:-238000,y:494000},{x:-236000,y:315000},{x:-229000,y:14000},{x:-227000,y:222000},{x:-225000,y:131000},{x:-225000,y:306000},{x:-224000,y:-14000},{x:-209000,y:531000},{x:-208000,y:-12000},{x:-205000,y:265000},{x:-201000,y:-6000},{x:-199000,y:509000},{x:-195000,y:450000},{x:-180000,y:-6000},{x:-172000,y:192000},{x:-172000,y:427000},{x:-170000,y:258000},{x:-168000,y:178000},{x:-166000,y:-1000},{x:-165000,y:-49000},{x:-161000,y:359000},{x:-158000,y:-2000},{x:-156000,y:-39000},{x:-156000,y:281000},{x:-154000,y:531000},{x:-153000,y:295000},{x:-149000,y:-66000},{x:-149000,y:-35000},{x:-149000,y:274000},{x:-149000,y:467000},{x:-147000,y:-7000},{x:-146000,y:522000},{x:-145000,y:-39000},{x:-141000,y:-169000},{x:-127000,y:-188000},{x:-124000,y:4000},{x:-122000,y:316000},{x:-120000,y:-46000},{x:-112000,y:-27000},{x:-107000,y:-229000},{x:-106000,y:-258000},{x:-106000,y:511000},{x:-103000,y:271000},{x:-102000,y:310000},{x:-96000,y:209000},{x:-96000,y:218000},{x:-93000,y:-3000},{x:-92000,y:249000},{x:-85000,y:110000},{x:-75000,y:-14000},{x:-74000,y:505000},{x:-73000,y:270000},{x:-71000,y:434000},{x:-69000,y:2000},{x:-64000,y:-167000},{x:-62000,y:219000},{x:-62000,y:440000},{x:-59000,y:191000},{x:-58000,y:-98000},{x:-55000,y:-93000},{x:-53000,y:260000},{x:-51000,y:-159000},{x:-51000,y:434000},{x:-48000,y:198000},{x:-48000,y:454000},{x:-47000,y:224000},{x:-31000,y:215000},{x:-27000,y:226000},{x:-23000,y:147000},{x:-22000,y:525000},{x:-21000,y:232000},{x:-12000,y:152000},{x:-8000,y:195000},{x:0,y:0},{x:0,y:344000},{x:3000,y:-361000},{x:7000,y:416000},{x:8000,y:215000},{x:9000,y:-283000},{x:10000,y:208000},{x:11000,y:-270000},{x:12000,y:183000},{x:13000,y:275000},{x:38000,y:-57000},{x:40000,y:137000},{x:42000,y:-66000},{x:49000,y:340000},{x:57000,y:145000},{x:65000,y:17000},{x:68000,y:222000},{x:70000,y:230000},{x:72000,y:154000},{x:79000,y:322000},{x:80000,y:147000},{x:81000,y:225000},{x:83000,y:184000},{x:86000,y:310000},{x:101000,y:219000},{x:101000,y:251000},{x:107000,y:201000},{x:122000,y:237000},{x:155000,y:-321000},{x:164000,y:-386000},{x:171000,y:-321000},{x:175000,y:167000},{x:176000,y:-393000},{x:177000,y:-203000},{x:180000,y:-393000},{x:182000,y:-393000},{x:184000,y:85000},{x:184000,y:127000},{x:194000,y:-185000},{x:198000,y:53000},{x:198000,y:131000},{x:199000,y:-126000},{x:215000,y:-259000},{x:216000,y:57000},{x:216000,y:72000},{x:221000,y:-396000},{x:223000,y:-288000},{x:225000,y:-175000},{x:232000,y:-172000},{x:236000,y:60000},{x:239000,y:-397000},{x:251000,y:-183000},{x:254000,y:-156000},{x:255000,y:-395000},{x:256000,y:85000},{x:257000,y:56000},{x:262000,y:-187000},{x:272000,y:-65000},{x:274000,y:-176000},{x:278000,y:-65000},{x:279000,y:104000},{x:280000,y:-157000},{x:285000,y:30000},{x:288000,y:76000},{x:293000,y:-400000},{x:300000,y:116000},{x:301000,y:41000},{x:307000,y:-139000},{x:327000,y:-30000},{x:329000,y:-92000},{x:335000,y:-146000},{x:336000,y:-81000},{x:337000,y:-146000},{x:343000,y:170000},{x:348000,y:-369000},{x:348000,y:177000},{x:349000,y:175000},{x:350000,y:-178000},{x:350000,y:166000},{x:356000,y:172000},{x:367000,y:-187000},{x:369000,y:70000},{x:370000,y:111000},{x:371000,y:-285000},{x:374000,y:29000},{x:375000,y:30000},{x:384000,y:-221000},{x:385000,y:-56000},{x:394000,y:87000},{x:396000,y:-252000},
+    ],
+    salt: [
+        {x:-450000,y:461000},{x:-438000,y:230000},{x:-325000,y:234000},{x:-323000,y:238000},{x:-270000,y:366000},{x:-252000,y:543000},{x:-234000,y:52000},{x:-205000,y:421000},{x:-180000,y:157000},{x:-145000,y:319000},{x:-114000,y:-153000},{x:-61000,y:-21000},{x:-55000,y:160000},{x:-51000,y:457000},{x:-25000,y:-302000},{x:40000,y:-91000},{x:59000,y:278000},{x:73697,y:55659},{x:126000,y:-285000},{x:141000,y:384000},{x:178000,y:122000},{x:252000,y:-158000},{x:288000,y:13000},{x:405000,y:32000},
     ],
     food: [
-        {lat:283.6,lng:-300.2,name:"Deer"},{lat:-137.9,lng:-185.5,name:"Deer"},
-        {lat:-167.6,lng:17.7,name:"Deer"},{lat:-148.6,lng:270,name:"Deer"},
-        {lat:67.9,lng:-290,name:"Gallimimus"},{lat:-58.8,lng:-132.8,name:"Gallimimus"},
-        {lat:-120.6,lng:-53,name:"Boar"},{lat:-128.8,lng:274,name:"Boar"},
-        {lat:-115.3,lng:243.9,name:"Rabbit"},{lat:-106.5,lng:322.3,name:"Rabbit"},
-        {lat:244.7,lng:-222,name:"Rabbit"},
-        {lat:237.4,lng:-180,name:"Chicken"},{lat:-133.1,lng:255.4,name:"Chicken"},
-        {lat:-65.4,lng:-104.7,name:"Goat"},{lat:-110.8,lng:332.5,name:"Goat"},
-        {lat:-87.7,lng:236,name:"Bullfrog"},
-        {lat:242.3,lng:-197.8,name:"Sea Turtle"},
+        {x:-320000,y:399000,name:"Boar"},{x:-195000,y:193000,name:"Boar"},{x:-183000,y:142000,name:"Boar"},{x:-138000,y:466000,name:"Boar"},{x:-123000,y:255000,name:"Boar"},{x:-108000,y:68000,name:"Boar"},{x:-97000,y:166000,name:"Boar"},{x:-79000,y:66000,name:"Boar"},{x:39000,y:222000,name:"Boar"},{x:224000,y:149000,name:"Boar"},{x:285000,y:63000,name:"Boar"},{x:302000,y:-310000,name:"Boar"},{x:338000,y:154000,name:"Boar"},
+        {x:-409000,y:293000,name:"Deer"},{x:-350000,y:404000,name:"Deer"},{x:-300000,y:124000,name:"Deer"},{x:-191000,y:446000,name:"Deer"},{x:-181000,y:234000,name:"Deer"},{x:-138000,y:179000,name:"Deer"},{x:-90000,y:345000,name:"Deer"},{x:-82000,y:198000,name:"Deer"},{x:-66000,y:246000,name:"Deer"},{x:11000,y:242000,name:"Deer"},{x:52000,y:177000,name:"Deer"},{x:58000,y:314000,name:"Deer"},{x:212000,y:-348000,name:"Deer"},{x:238000,y:-315000,name:"Deer"},{x:287000,y:156000,name:"Deer"},{x:327000,y:162000,name:"Deer"},{x:352000,y:-201000,name:"Deer"},
+        {x:-190000,y:28000,name:"Goat"},{x:-149000,y:-44000,name:"Goat"},{x:-130000,y:-70000,name:"Goat"},{x:-96000,y:-47000,name:"Goat"},{x:28000,y:-79000,name:"Goat"},
+        {x:-267000,y:155000,name:"Rabbit"},{x:-165000,y:8000,name:"Rabbit"},{x:-120000,y:-163000,name:"Rabbit"},{x:-106000,y:208000,name:"Rabbit"},{x:-67000,y:66000,name:"Rabbit"},{x:52000,y:-200000,name:"Rabbit"},{x:68000,y:-303000,name:"Rabbit"},{x:89000,y:26000,name:"Rabbit"},{x:196000,y:-362000,name:"Rabbit"},
+        {x:-75000,y:-132000,name:"Galli"},{x:-70000,y:-180000,name:"Galli"},{x:-34000,y:-103000,name:"Galli"},
+        {x:-395000,y:327000,name:"Fish"},{x:-282000,y:75000,name:"Fish"},{x:-187000,y:364000,name:"Fish"},{x:-152000,y:209000,name:"Fish"},{x:-95000,y:256000,name:"Fish"},{x:-67000,y:185000,name:"Fish"},{x:28000,y:139000,name:"Fish"},{x:70000,y:213000,name:"Fish"},{x:153000,y:226000,name:"Fish"},{x:190000,y:97000,name:"Fish"},{x:279000,y:26000,name:"Fish"},{x:317000,y:146000,name:"Fish"},
+        {x:-123000,y:523000,name:"Crab"},{x:-32000,y:351000,name:"Crab"},{x:9000,y:-277000,name:"Crab"},{x:42000,y:-349000,name:"Crab"},{x:95000,y:307000,name:"Crab"},{x:199000,y:165000,name:"Crab"},{x:268000,y:98000,name:"Crab"},{x:301000,y:-59000,name:"Crab"},{x:342000,y:-130000,name:"Crab"},{x:363000,y:-271000,name:"Crab"},{x:400000,y:82000,name:"Crab"},
+        {x:-281000,y:364000,name:"Frog"},{x:-160000,y:343000,name:"Frog"},{x:-97000,y:55000,name:"Frog"},{x:125000,y:206000,name:"Frog"},{x:215000,y:-195000,name:"Frog"},
+        {x:-153000,y:545000,name:"Turtle"},{x:-31000,y:442000,name:"Turtle"},{x:5000,y:402000,name:"Turtle"},{x:25000,y:-375000,name:"Turtle"},{x:65000,y:338000,name:"Turtle"},{x:108000,y:-335000,name:"Turtle"},{x:155000,y:-300000,name:"Turtle"},{x:290000,y:179000,name:"Turtle"},{x:343000,y:-167000,name:"Turtle"},{x:382000,y:117000,name:"Turtle"},{x:421000,y:-18000,name:"Turtle"},
     ],
 };
 
@@ -1237,9 +1142,11 @@ function createMapState(canvasId, containerId, isAdmin) {
     const ctx = canvas.getContext('2d');
     const img = new Image();
     img.src = '../assets/map/gateway.png';
-
+    const waterImg = new Image();
+    waterImg.src = '../assets/map/gateway-water.png';
+    waterImg.onload = () => { if (state) drawMap(state); };
     const state = {
-        canvas, container, ctx, img, isAdmin,
+        canvas, container, ctx, img, waterImg, isAdmin,
         scale: 0.7, offsetX: 0, offsetY: 0,
         dragging: false, lastX: 0, lastY: 0,
         layers: { sanctuary: true, migration: true, patrol: true, water: true, landmark: true, salt: true, gastro: false, food: true, area: true, players: true },
@@ -1262,9 +1169,9 @@ function createMapState(canvasId, containerId, isAdmin) {
             drawMap(state);
         }
         const rect = canvas.getBoundingClientRect();
-        const w = canvasToWorld(e.clientX - rect.left, e.clientY - rect.top, state.offsetX, state.offsetY, state.scale);
+        const w = canvasToGame(e.clientX - rect.left, e.clientY - rect.top, state.offsetX, state.offsetY, state.scale);
         const coordEl = document.getElementById(isAdmin ? 'mapCoords' : 'playerMapCoords');
-        if (coordEl) coordEl.textContent = `Lat: ${w.lat.toFixed(1)}  Lng: ${w.lng.toFixed(1)}`;
+        if (coordEl) coordEl.textContent = `X: ${Math.round(w.gameX)}  Y: ${Math.round(w.gameY)}`;
         handleTooltip(e, state);
     });
     canvas.addEventListener('mouseup', () => { state.dragging = false; });
@@ -1278,7 +1185,8 @@ function createMapState(canvasId, containerId, isAdmin) {
         state.offsetX = mx - (mx - state.offsetX) * factor;
         state.offsetY = my - (my - state.offsetY) * factor;
         state.scale *= factor;
-        state.scale = Math.max(0.3, Math.min(8, state.scale));
+        const minScale = Math.min(state.canvas.width / MAP_IMG_W, state.canvas.height / MAP_IMG_H) * 0.5;
+        state.scale = Math.max(minScale, Math.min(8, state.scale));
         drawMap(state);
     }, { passive: false });
 
@@ -1288,9 +1196,9 @@ function createMapState(canvasId, containerId, isAdmin) {
 function fitMap(state) {
     const w = state.container.clientWidth;
     const h = state.container.clientHeight;
-    state.scale = Math.min(w, h) / MAP_IMG_SIZE * 0.95;
-    state.offsetX = (w - MAP_IMG_SIZE * state.scale) / 2;
-    state.offsetY = (h - MAP_IMG_SIZE * state.scale) / 2;
+    state.scale = Math.min(w / MAP_IMG_W, h / MAP_IMG_H) * 0.95;
+    state.offsetX = (w - MAP_IMG_W * state.scale) / 2;
+    state.offsetY = (h - MAP_IMG_H * state.scale) / 2;
 }
 
 function resizeCanvas(state) {
@@ -1315,33 +1223,37 @@ function drawMap(state) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Draw base map
-    ctx.drawImage(img, offsetX, offsetY, MAP_IMG_SIZE * scale, MAP_IMG_SIZE * scale);
+    ctx.drawImage(img, offsetX, offsetY, MAP_IMG_W * scale, MAP_IMG_H * scale);
+    if (layers.water && state.waterImg && state.waterImg.complete) {
+        ctx.globalAlpha = 0.6;
+        ctx.drawImage(state.waterImg, offsetX, offsetY, MAP_IMG_W * scale, MAP_IMG_H * scale);
+        ctx.globalAlpha = 1;
+    }
 
-    const wp = (lat, lng) => worldToCanvas(lat, lng, offsetX, offsetY, scale);
-    const wpStatic = (lat, lng) => {
-        const px = ((lng - 65 - MAP_MIN) / MAP_RANGE) * MAP_IMG_SIZE;
-        const py = ((lat - MAP_MIN) / MAP_RANGE) * MAP_IMG_SIZE;
-        return { x: offsetX + px * scale, y: offsetY + py * scale };
-    };
+    const wp = (gameX, gameY) => gameToCanvas(gameX, gameY, offsetX, offsetY, scale);
+    const wpStatic = (gameX, gameY) => gameToCanvas(gameX, gameY, offsetX, offsetY, scale);
     state.tooltipItems = [];
 
     // Migration Zones
     if (layers.migration) {
         for (const m of MAP_DATA.migrations) {
-            ctx.globalAlpha = 0.25;
+            const mColor = m.mmz ? '#f59e0b' : '#06b6d4';
+            const mFill = m.mmz ? 'rgba(245,158,11,0.35)' : 'rgba(6,182,212,0.35)';
+            const mWidth = m.mmz ? 2.5 : 1.5;
+            ctx.setLineDash([6, 4]);
             if (m.kind === 'ellipse') {
-                const c = wpStatic(m.lat, m.lng);
-                const rxPx = (m.rx / MAP_RANGE) * MAP_IMG_SIZE * scale;
-                const ryPx = (m.ry / MAP_RANGE) * MAP_IMG_SIZE * scale;
-                drawEllipse(ctx, c.x, c.y, rxPx, ryPx, m.rotDeg, 'rgba(251,191,36,8)', '#fbbf24', 1);
-            } else if (m.kind === 'polygon') {
+                const c = wpStatic(m.x, m.y);
+                const rxPx = m.rx / 1000 * 2.5 / 2780 * MAP_IMG_W * scale;
+                const ryPx = m.ry / 1000 * 2.5 / 2790 * MAP_IMG_H * scale;
+                drawEllipse(ctx, c.x, c.y, rxPx, ryPx, m.rotDeg, mFill, mColor, mWidth);
+            } else {
                 ctx.beginPath();
-                m.points.forEach((p, i) => { const c = wpStatic(p.lat, p.lng); i === 0 ? ctx.moveTo(c.x, c.y) : ctx.lineTo(c.x, c.y); });
+                m.points.forEach((p, i) => { const c = wpStatic(p[0], p[1]); i === 0 ? ctx.moveTo(c.x, c.y) : ctx.lineTo(c.x, c.y); });
                 ctx.closePath();
-                ctx.fillStyle = 'rgba(251,191,36,8)'; ctx.fill();
-                ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = mFill; ctx.fill();
+                ctx.strokeStyle = mColor; ctx.lineWidth = mWidth; ctx.stroke();
             }
-            ctx.globalAlpha = 1;
+            ctx.setLineDash([]);
         }
     }
     
@@ -1349,8 +1261,8 @@ function drawMap(state) {
     if (layers.patrol) {
         for (const pz of MAP_DATA.patrols || []) {
             for (const circle of pz.circles) {
-                const c = wpStatic(circle.lat, circle.lng);
-                const rPx = (circle.r / MAP_RANGE) * MAP_IMG_SIZE * scale;
+                const c = wpStatic(circle.x, circle.y);
+                const rPx = circle.r / 1000 * 2.5 / 2780 * MAP_IMG_W * scale;
                 ctx.beginPath(); ctx.arc(c.x, c.y, rPx, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(148,163,184,0.5)'; ctx.fill();
                 ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.stroke();
@@ -1361,51 +1273,30 @@ function drawMap(state) {
     // Sanctuaries
     if (layers.sanctuary) {
         for (const s of MAP_DATA.sanctuaries) {
-            const c = wpStatic(s.lat, s.lng);
-            const rxPx = (s.rx / MAP_RANGE) * MAP_IMG_SIZE * scale;
-            const ryPx = (s.ry / MAP_RANGE) * MAP_IMG_SIZE * scale;
+            const c = wpStatic(s.x, s.y);
+            const rxPx = s.rx / 1000 * 2.5 / 2780 * MAP_IMG_W * scale;
+            const ryPx = s.ry / 1000 * 2.5 / 2790 * MAP_IMG_H * scale;
             ctx.globalAlpha = 0.35;
-            drawEllipse(ctx, c.x, c.y, rxPx, ryPx, s.rotDeg, 'rgba(74,222,128,0.3)', '#4ade80', 1.5);
+            drawEllipse(ctx, c.x, c.y, rxPx, ryPx, s.rotDeg, 'rgba(0,255,255,0.6)', '#00ffff', 3);
+            ctx.globalAlpha = 1;
+            drawEllipse(ctx, c.x, c.y, rxPx, ryPx, s.rotDeg, null, '#00ffff', 3);
             ctx.globalAlpha = 1;
             if (scale > 0.6) {
                 ctx.fillStyle = '#4ade80'; ctx.font = `bold ${Math.max(9, 11 * scale)}px sans-serif`;
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(s.name, c.x, c.y);
             }
-            state.tooltipItems.push({ lat: s.lat, lng: s.lng, r: Math.max(rxPx, ryPx), label: `Sanctuary: ${s.name}` });
+            state.tooltipItems.push({ gameX: s.x, gameY: s.y, r: Math.max(rxPx, ryPx), label: `Sanctuary: ${s.name}` });
         }
     }
 
-    // Water
-    if (layers.water) {
-        for (const w of MAP_DATA.water) {
-            const c = wpStatic(w.lat, w.lng);
-            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(3, 4 * scale), 0, Math.PI * 2);
-            ctx.fillStyle = '#38bdf8'; ctx.fill();
-            if (scale > 0.9) {
-                ctx.fillStyle = '#bae6fd'; ctx.font = `${Math.max(8, 9 * scale)}px sans-serif`;
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-                ctx.fillText(w.name, c.x, c.y + 5 * scale);
-            }
-            state.tooltipItems.push({ lat: w.lat, lng: w.lng, r: 8, label: `Water: ${w.name}` });
-        }
-    }
-
-    // Area Labels
-    if (layers.area && scale > 0.5) {
-        for (const a of MAP_DATA.areas) {
-            const c = wpStatic(a.lat, a.lng);
-            ctx.fillStyle = 'rgba(255,80,80,2)'; ctx.font = `${Math.max(9, 11 * scale)}px sans-serif`;
-            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.fillText(a.name, c.x, c.y);
-        }
-    }
+    // Water overlay handled by image layer
 
     // Gastroliths
     if (layers.gastro) {
         for (const g of MAP_DATA.gastro) {
-            const c = wpStatic(g.lat, g.lng);
-            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(2, 2.5 * scale), 0, Math.PI * 2);
+            const c = wpStatic(g.x, g.y);
+            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(3, 4 * scale), 0, Math.PI * 2);
             ctx.fillStyle = '#a3e635'; ctx.fill();
         }
     }
@@ -1413,38 +1304,36 @@ function drawMap(state) {
     // Salt Licks
     if (layers.salt) {
         for (const s of MAP_DATA.salt) {
-            const c = wpStatic(s.lat, s.lng);
-            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(3, 3.5 * scale), 0, Math.PI * 2);
+            const c = wpStatic(s.x, s.y);
+            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(4, 5 * scale), 0, Math.PI * 2);
             ctx.fillStyle = '#fb923c'; ctx.fill();
-            state.tooltipItems.push({ lat: s.lat, lng: s.lng, r: 6, label: 'Salt Lick' });
+            state.tooltipItems.push({ gameX: s.x, gameY: s.y, r: 6, label: 'Salt Lick' });
         }
     }
 
     // AI Food
     if (layers.food) {
         for (const f of MAP_DATA.food) {
-            const c = wpStatic(f.lat, f.lng);
-            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(3, 4 * scale), 0, Math.PI * 2);
+            const c = wpStatic(f.x, f.y);
+            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(4, 5 * scale), 0, Math.PI * 2);
             ctx.fillStyle = '#f9a8d4'; ctx.fill();
-            ctx.strokeStyle = '#be185d'; ctx.lineWidth = 1; ctx.stroke();
-            state.tooltipItems.push({ lat: f.lat, lng: f.lng, r: 7, label: `AI ${f.name}` });
+            ctx.strokeStyle = '#be185d'; ctx.lineWidth = 1.5; ctx.stroke();
+            state.tooltipItems.push({ gameX: f.x, gameY: f.y, r: 7, label: `AI ${f.name}` });
         }
     }
 
-    // Landmarks
+    // Locations
     if (layers.landmark) {
-        for (const l of MAP_DATA.landmarks) {
-            const c = wpStatic(l.lat, l.lng);
-            ctx.beginPath();
-            ctx.moveTo(c.x, c.y - 6 * scale); ctx.lineTo(c.x + 4 * scale, c.y + 4 * scale); ctx.lineTo(c.x - 4 * scale, c.y + 4 * scale);
-            ctx.fillStyle = '#e879f9'; ctx.fill();
-            ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.stroke();
-            if (scale > 0.7) {
-                ctx.fillStyle = '#f0abfc'; ctx.font = `${Math.max(8, 9 * scale)}px sans-serif`;
+        for (const l of MAP_DATA.locations) {
+            const c = wpStatic(l.x, l.y);
+            if (true) {
+                ctx.fillStyle = '#10b981'; ctx.font = `bold ${Math.max(14, 18 * scale)}px sans-serif`;
                 ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+                ctx.strokeStyle = 'rgba(0,0,0,0.6)'; ctx.lineWidth = 3;
+                ctx.strokeText(l.name, c.x, c.y + 6 * scale);
                 ctx.fillText(l.name, c.x, c.y + 6 * scale);
             }
-            state.tooltipItems.push({ lat: l.lat, lng: l.lng, r: 8, label: l.name });
+            state.tooltipItems.push({ gameX: l.x, gameY: l.y, r: 8, label: l.name });
         }
     }
 
@@ -1453,7 +1342,7 @@ function drawMap(state) {
         for (const [steamId, pos] of Object.entries(playerPositions)) {
             const isSelf = steamId === currentSteamId;
             if (!isAdmin && !isSelf) continue;
-            const c = wp(pos.lat || 0, pos.lng || 0);
+            const c = wp(pos.gameX || 0, pos.gameY || 0);
             const r = Math.max(5, 6 * scale);
             ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
             ctx.fillStyle = isSelf ? '#ff4444' : '#ffaa00';
@@ -1464,7 +1353,7 @@ function drawMap(state) {
                 ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
                 ctx.fillText(pos.name || steamId, c.x, c.y - r - 2);
             }
-            state.tooltipItems.push({ lat: pos.lat, lng: pos.lng, r: r + 4, label: `${pos.name || steamId}${isSelf ? ' (you)' : ''}` });
+            state.tooltipItems.push({ gameX: pos.gameX, gameY: pos.gameY, r: r + 4, label: `${pos.name || steamId}${isSelf ? ' (you)' : ''}` });
         }
     }
 }
@@ -1477,7 +1366,7 @@ function handleTooltip(e, state) {
     const tooltip = document.getElementById('mapTooltip');
     if (!tooltip) return;
     for (const item of state.tooltipItems) {
-        const c = worldToCanvas(item.lat, item.lng, state.offsetX, state.offsetY, state.scale);
+        const c = gameToCanvas(item.gameX, item.gameY, state.offsetX, state.offsetY, state.scale);
         const dist = Math.sqrt((mx - c.x) ** 2 + (my - c.y) ** 2);
         if (dist <= item.r + 4) {
             tooltip.textContent = item.label;
@@ -1550,13 +1439,7 @@ async function pollMapPositions() {
         const positions = data.positions || {};
         const converted = {};
         for (const [steamId, pos] of Object.entries(positions)) {
-            const gameX = pos.x;  // Long
-            const gameY = pos.y;  // Lat
-            const percentX = (gameX - (-560000)) / 1234000 * 100;
-            const percentY = (618000 - gameY) / 1234000 * 100;
-            const mapLng = (percentX / 100) * 1200 - 600;
-            const mapLat = 600 - (percentY / 100) * 1200;
-            converted[steamId] = { lat: mapLat, lng: mapLng, name: pos.name };
+            converted[steamId] = { gameX: pos.y, gameY: pos.x, name: pos.name };
         }
         if (mapState) { mapState.playerPositions = converted; drawMap(mapState); }
         if (playerMapState) { playerMapState.playerPositions = converted; drawMap(playerMapState); }
