@@ -58,7 +58,7 @@
         .legend-item.disabled { opacity: 0.35; }
         .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
         .legend-rect { width: 12px; height: 8px; border-radius: 2px; }
-        #mapTooltip { position: fixed; background: #112e2e; border: 1px solid #1e4a4a; border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #e0f7f4; pointer-events: none; display: none; z-index: 1000; max-width: 160px; }
+        #mapTooltip, #mapTooltip2 { position: fixed; background: #112e2e; border: 1px solid #1e4a4a; border-radius: 6px; padding: 6px 10px; font-size: 12px; color: #e0f7f4; pointer-events: none; display: none; z-index: 1000; max-width: 160px; }
         #mapCoords { position: absolute; bottom: 8px; right: 8px; background: rgba(9,24,24,0.85); border: 1px solid #1e4a4a; border-radius: 4px; padding: 4px 8px; font-size: 11px; color: #4dd9c0; font-family: monospace; }
 
         /* Player map tab */
@@ -162,6 +162,7 @@
         <div id="playerMapContainer">
             <canvas id="playerMapCanvas"></canvas>
             <div id="playerMapCoords"></div>
+            <div id="mapTooltip2"></div>
         </div>
         <div id="playerMapLegend">
             <span style="color:#a0c4c0; margin-right:4px;">Layers:</span>
@@ -1254,6 +1255,15 @@ function drawMap(state) {
                 ctx.strokeStyle = mColor; ctx.lineWidth = mWidth; ctx.stroke();
             }
             ctx.setLineDash([]);
+            const mCx = m.kind === 'ellipse' ? m.x : m.points[Math.floor(m.points.length/2)][0];
+            const mCy = m.kind === 'ellipse' ? m.y : m.points[Math.floor(m.points.length/2)][1];
+            const mR = m.kind === 'ellipse' 
+                ? Math.min(
+                    m.rx / 1000 * 2.5 / 2780 * MAP_IMG_W,
+                    m.ry / 1000 * 2.5 / 2790 * MAP_IMG_H
+                  ) * scale
+                : Math.max(80, 120 * scale);
+            state.tooltipItems.push({ kind: m.kind, gameX: mCx, gameY: mCy, r: mR, migration: m, label: m.name });
         }
     }
     
@@ -1266,6 +1276,8 @@ function drawMap(state) {
                 ctx.beginPath(); ctx.arc(c.x, c.y, rPx, 0, Math.PI * 2);
                 ctx.fillStyle = 'rgba(148,163,184,0.5)'; ctx.fill();
                 ctx.strokeStyle = '#94a3b8'; ctx.lineWidth = 1.5; ctx.stroke();
+                const rPx2 = circle.r / 1000 * 2.5 / 2780 * MAP_IMG_W * scale;
+                state.tooltipItems.push({ gameX: circle.x, gameY: circle.y, r: rPx2, label: `Patrol: ${pz.name}` });
             }
         }
     }
@@ -1296,8 +1308,9 @@ function drawMap(state) {
     if (layers.gastro) {
         for (const g of MAP_DATA.gastro) {
             const c = wpStatic(g.x, g.y);
-            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(3, 4 * scale), 0, Math.PI * 2);
+            ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(4, 5 * scale), 0, Math.PI * 2);
             ctx.fillStyle = '#a3e635'; ctx.fill();
+            state.tooltipItems.push({ gameX: g.x, gameY: g.y, r: 5, label: 'Gastrolith' });
         }
     }
 
@@ -1318,7 +1331,7 @@ function drawMap(state) {
             ctx.beginPath(); ctx.arc(c.x, c.y, Math.max(4, 5 * scale), 0, Math.PI * 2);
             ctx.fillStyle = '#f9a8d4'; ctx.fill();
             ctx.strokeStyle = '#be185d'; ctx.lineWidth = 1.5; ctx.stroke();
-            state.tooltipItems.push({ gameX: f.x, gameY: f.y, r: 7, label: `AI ${f.name}` });
+            state.tooltipItems.push({ gameX: f.x, gameY: f.y, r: 6, label: f.name });
         }
     }
 
@@ -1343,32 +1356,52 @@ function drawMap(state) {
             const isSelf = steamId === currentSteamId;
             if (!isAdmin && !isSelf) continue;
             const c = wp(pos.gameX || 0, pos.gameY || 0);
-            const r = Math.max(5, 6 * scale);
+            const r = Math.max(7, 9 * scale);
             ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
             ctx.fillStyle = isSelf ? '#ff4444' : '#ffaa00';
             ctx.fill();
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
-            if (scale > 0.6) {
-                ctx.fillStyle = '#fff'; ctx.font = `bold ${Math.max(9, 10 * scale)}px sans-serif`;
-                ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-                ctx.fillText(pos.name || steamId, c.x, c.y - r - 2);
-            }
             state.tooltipItems.push({ gameX: pos.gameX, gameY: pos.gameY, r: r + 4, label: `${pos.name || steamId}${isSelf ? ' (you)' : ''}` });
         }
     }
 }
 
 function handleTooltip(e, state) {
-    if (!state.isAdmin) return;
     const rect = state.canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
-    const tooltip = document.getElementById('mapTooltip');
+    const tooltip = document.getElementById(state.isAdmin ? 'mapTooltip' : 'mapTooltip2');
     if (!tooltip) return;
-    for (const item of state.tooltipItems) {
-        const c = gameToCanvas(item.gameX, item.gameY, state.offsetX, state.offsetY, state.scale);
-        const dist = Math.sqrt((mx - c.x) ** 2 + (my - c.y) ** 2);
-        if (dist <= item.r + 4) {
+    for (const item of [...state.tooltipItems].reverse()) {
+        let hit = false;
+        if (item.migration) {
+            const m = item.migration;
+            if (m.kind === 'ellipse') {
+                const c = gameToCanvas(m.x, m.y, state.offsetX, state.offsetY, state.scale);
+                const rxPx = m.rx / 1000 * 2.5 / 2780 * MAP_IMG_W * state.scale;
+                const ryPx = m.ry / 1000 * 2.5 / 2790 * MAP_IMG_H * state.scale;
+                const angle = -m.rotDeg * Math.PI / 180;
+                const dx = mx - c.x;
+                const dy = my - c.y;
+                const rx2 = dx * Math.cos(angle) - dy * Math.sin(angle);
+                const ry2 = dx * Math.sin(angle) + dy * Math.cos(angle);
+                hit = (rx2 * rx2) / (rxPx * rxPx) + (ry2 * ry2) / (ryPx * ryPx) <= 1;
+            } else {
+                // Point in polygon using ray casting
+                const pts = m.points.map(p => gameToCanvas(p[0], p[1], state.offsetX, state.offsetY, state.scale));
+                let inside = false;
+                for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+                    const xi = pts[i].x, yi = pts[i].y, xj = pts[j].x, yj = pts[j].y;
+                    if (((yi > my) !== (yj > my)) && (mx < (xj - xi) * (my - yi) / (yj - yi) + xi)) inside = !inside;
+                }
+                hit = inside;
+            }
+        } else {
+            const c = gameToCanvas(item.gameX, item.gameY, state.offsetX, state.offsetY, state.scale);
+            const dist = Math.sqrt((mx - c.x) ** 2 + (my - c.y) ** 2);
+            hit = dist <= item.r + 4;
+        }
+        if (hit) {
             tooltip.textContent = item.label;
             tooltip.style.display = 'block';
             tooltip.style.left = (e.clientX + 12) + 'px';
@@ -1382,6 +1415,8 @@ function handleTooltip(e, state) {
 function hideTooltip() {
     const t = document.getElementById('mapTooltip');
     if (t) t.style.display = 'none';
+    const t2 = document.getElementById('mapTooltip2');
+    if (t2) t2.style.display = 'none';
 }
 
 function toggleLayer(name) {
