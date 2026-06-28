@@ -711,8 +711,8 @@ async function connectVoice(statusElId, btnElId) {
         if (btn) btn.style.display = 'none';
         fetch(`${API}/enforcer/voice-connected`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }) }).catch(() => {});
         reshardTimer = setInterval(() => checkReshard(statusElId), 5000);
-        window.electronAPI.onPTTDown(() => { if (localAudioTrack && !pttActive) { pttActive = true; localAudioTrack.unmute(); playPTTTone(true); } });
-        window.electronAPI.onPTTUp(() => { if (localAudioTrack && pttActive) { pttActive = false; localAudioTrack.mute(); playPTTTone(false); } });
+        window.electronAPI.onPTTDown(() => { if (!pttActive) { pttActive = true; if (localAudioTrack) localAudioTrack.unmute(); room.localParticipant.setMicrophoneEnabled(true); playPTTTone(true); } });
+        window.electronAPI.onPTTUp(() => { if (pttActive) { pttActive = false; if (localAudioTrack) localAudioTrack.mute(); room.localParticipant.setMicrophoneEnabled(false); playPTTTone(false); } });
     } catch (err) { status.textContent = 'Voice error: ' + err.message; console.error('Voice error:', err); }
 }
 
