@@ -686,6 +686,16 @@ async function connectVoice(statusElId, btnElId) {
             status.textContent = 'Disconnected from voice.';
             if (btn) btn.style.display = 'block';
             clearInterval(reshardTimer);
+            clearInterval(trackHealthTimer);
+            trackHealthTimer = setInterval(() => {
+                if (!room || !localAudioTrack) return;
+                const pub = room.localParticipant.audioTrackPublications.values().next().value;
+                if (!pub) return;
+                const shouldBeMuted = !pttActive;
+                if (pub.isMuted !== shouldBeMuted) {
+                    room.localParticipant.setMicrophoneEnabled(!shouldBeMuted);
+                }
+            }, 3000);
             fetch(`${API}/enforcer/voice-disconnected`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }) }).catch(() => {});
         });
         room.on(LivekitClient.RoomEvent.ParticipantConnected, () => updateAudioMatrix());
