@@ -224,7 +224,7 @@
 
             <!-- VOICE -->
             <div class="panel" id="panel-voice">
-                <button class="btn" onclick="joinVoice()">Join Voice</button>
+                <button class="btn" id="voiceBtnAdmin" onclick="connectVoiceAdmin()">Join Voice</button>
                 <div id="voiceStatusAdmin" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
             </div>
 
@@ -682,6 +682,7 @@ async function connectVoice(statusElId, btnElId) {
         status.textContent = 'Connecting to voice...';
         room = new LivekitClient.Room({ adaptiveStream: true, dynacast: true });
         room.on(LivekitClient.RoomEvent.Disconnected, () => {
+            if (isResharding) return;
             status.textContent = 'Disconnected from voice.';
             if (btn) btn.style.display = 'block';
             clearInterval(reshardTimer);
@@ -738,8 +739,10 @@ async function checkReshard(statusElId) {
         const data = await res.json();
         if (data.room !== currentRoom) {
             currentRoom = data.room;
+            isResharding = true;
             await room.disconnect();
             await room.connect(data.url, data.token, { autoSubscribe: true });
+            isResharding = false;
             if (localAudioTrack) { await room.localParticipant.publishTrack(localAudioTrack); if (!pttActive) localAudioTrack.mute(); }
             updateAudioMatrix();
             const status = document.getElementById(statusElId);
