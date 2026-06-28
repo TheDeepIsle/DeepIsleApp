@@ -649,7 +649,7 @@ async function loadActivityLog() {
 //  Voice System 
 const LivekitClient = window.LivekitClient;
 let room = null;
-let localAudioTrack = null;
+var localAudioTrack = null;
 let currentRoom = '';
 let pttActive = false;
 let reshardTimer = null;
@@ -713,7 +713,7 @@ async function connectVoice(statusElId, btnElId) {
         reshardTimer = setInterval(() => checkReshard(statusElId), 5000);
         window.electronAPI.onPTTDown(() => { if (localAudioTrack && !pttActive) { pttActive = true; localAudioTrack.unmute(); playPTTTone(true); } });
         window.electronAPI.onPTTUp(() => { if (localAudioTrack && pttActive) { pttActive = false; localAudioTrack.mute(); playPTTTone(false); } });
-    } catch (err) { status.textContent = 'Voice error: ' + err.message; }
+    } catch (err) { status.textContent = 'Voice error: ' + err.message; console.error('Voice error:', err); }
 }
 
 function playPTTTone(isOpen) {
