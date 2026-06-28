@@ -14,10 +14,6 @@ function createWindow() {
             preload: path.join(__dirname, 'preload.js'),
             contextIsolation: true,
         },
-        mainWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
-        if (permission === 'media') return callback(true);
-        callback(false);
-        });
         title: 'Deep Isle Admin',
         resizable: true,
     });
