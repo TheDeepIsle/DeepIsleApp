@@ -656,6 +656,7 @@ let reshardTimer = null;
 let lkContext = null;
 let lkStream = null;
 let lkGainNode = null;
+var trackHealthTimer = null;
 
 async function buildAudioTrack() {
     const constraints = { audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } };
