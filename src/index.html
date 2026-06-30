@@ -250,6 +250,14 @@
                         <button class="btn small" id="updateNotifyBtn" onclick="toggleUpdateNotify()"> Update Notify: OFF</button>
                     </div>
                 </div>
+                <div style="margin-bottom:24px;">
+                    <p style="font-size:13px; color:#a0c4c0; margin-bottom:8px;">Grant Prime</p>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <input type="text" id="primePlayerName" placeholder="Player name..." style="margin-bottom:0; flex:1;" />
+                        <button class="btn small" onclick="grantPrime()"> Grant Prime</button>
+                    </div>
+                    <div id="primeStatus" style="margin-top:8px; color:#4dd9c0; font-size:13px;"></div>
+                </div>
                 <div id="controlStatus" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
             </div>
 
@@ -1493,6 +1501,24 @@ async function pollMapPositions() {
         if (mapState) { mapState.playerPositions = converted; drawMap(mapState); }
         if (playerMapState) { playerMapState.playerPositions = converted; drawMap(playerMapState); }
     } catch {}
+}
+
+async function grantPrime() {
+    const name = document.getElementById('primePlayerName').value.trim();
+    const status = document.getElementById('primeStatus');
+    if (!name) { status.textContent = 'Enter a player name.'; return; }
+    status.textContent = 'Searching for player...';
+    try {
+        const res = await fetch(`${API}/grant-prime`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, serverId: currentServerId })
+        });
+        const data = await res.json();
+        status.textContent = res.ok ? `✓ ${data.message}` : `✗ ${data.error}`;
+    } catch (err) {
+        status.textContent = 'Error: ' + err.message;
+    }
 }
 
 window.addEventListener('resize', () => {
