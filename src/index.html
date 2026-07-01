@@ -1523,10 +1523,25 @@ async function pollMapPositions() {
 
 let pttListening = false;
 
+const KEY_NAMES = window.electronAPI.getKeyNameMap(); // { 57: 'Space', 30: 'A', ... } for every key uIOhook knows
+
+const MOUSE_BUTTON_NAMES = { 1: 'Left Mouse', 2: 'Right Mouse', 3: 'Middle Mouse (Scroll Click)', 4: 'Mouse 4', 5: 'Mouse 5' };
+
 function updatePTTLabels(config) {
     const label = config.mouseButton !== null && config.mouseButton !== undefined
-        ? `Mouse Button ${config.mouseButton}`
-        : `Key ${config.keyCode}`;
+        ? (MOUSE_BUTTON_NAMES[config.mouseButton] || `Mouse Button ${config.mouseButton}`)
+        : (KEY_NAMES[config.keyCode] || `Key Code ${config.keyCode}`);
+    const adminLabel = document.getElementById('pttLabelAdmin');
+    const playerLabel = document.getElementById('pttLabelPlayer');
+    if (adminLabel) adminLabel.textContent = label;
+    if (playerLabel) playerLabel.textContent = label;
+}
+
+
+function updatePTTLabels(config) {
+    const label = config.mouseButton !== null && config.mouseButton !== undefined
+        ? (MOUSE_BUTTON_NAMES[config.mouseButton] || `Mouse Button ${config.mouseButton}`)
+        : (KEY_NAMES[config.keyCode] || `Key Code ${config.keyCode}`);
     const adminLabel = document.getElementById('pttLabelAdmin');
     const playerLabel = document.getElementById('pttLabelPlayer');
     if (adminLabel) adminLabel.textContent = label;
@@ -1539,34 +1554,18 @@ function startPTTListen(labelId) {
     const label = document.getElementById(labelId);
     const original = label.textContent;
     label.textContent = 'Press any key or button...';
-    const onMouse = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const config = { mouseButton: e.button, keyCode: null };
-        window.electronAPI.setPTTButton(config);
-        const btnName = e.button === 0 ? 'Left Mouse' : e.button === 1 ? 'Middle Mouse' : e.button === 2 ? 'Right Mouse' : `Mouse Button ${e.button}`;
-        updatePTTLabels({ mouseButton: e.button, keyCode: null });
-        cleanup();
-    };
-    const onKey = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const config = { mouseButton: null, keyCode: e.keyCode };
-        window.electronAPI.setPTTButton(config);
-        updatePTTLabels({ mouseButton: null, keyCode: e.keyCode });
-        cleanup();
-    };
-    const cleanup = () => {
+
+    const onLearned = (config) => {
+        updatePTTLabels(config);
         pttListening = false;
-        window.removeEventListener('mousedown', onMouse, true);
-        window.removeEventListener('keydown', onKey, true);
     };
-    window.addEventListener('mousedown', onMouse, true);
-    window.addEventListener('keydown', onKey, true);
+    window.electronAPI.onPTTLearned(onLearned);
+    window.electronAPI.startPTTLearn();
+
     setTimeout(() => {
         if (pttListening) {
             label.textContent = original;
-            cleanup();
+            pttListening = false;
         }
     }, 10000);
 }
