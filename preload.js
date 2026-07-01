@@ -10,7 +10,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
     startPTTLearn: () => ipcRenderer.send('start-ptt-learn'),
     onPTTLearned: (callback) => ipcRenderer.on('ptt-learned', (_event, config) => callback(config)),
     getKeyNameMap: () => ipcRenderer.invoke('get-key-name-map'),
-        const { UiohookKey } = require('uiohook-napi');
-        return Object.fromEntries(Object.entries(UiohookKey).map(([name, code]) => [code, name]));
-    },
 });
