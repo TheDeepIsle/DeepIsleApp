@@ -124,6 +124,10 @@
             <div class="count-label">Players Online</div>
             <button class="btn" id="voiceBtnPlayer" onclick="connectVoicePlayer()"> Join Voice</button>
             <div id="voiceStatusPlayer" style="font-size:13px; color:#4dd9c0; margin-top:10px;"></div>
+            <div style="margin-top:14px;">
+                <p style="font-size:12px; color:#a0c4c0; margin-bottom:6px;">PTT Button: <span id="pttLabelPlayer">Middle Mouse</span></p>
+                <button class="btn small" onclick="startPTTListen('pttLabelPlayer')">Set PTT Button</button>
+            </div>
             <div class="user" id="playerUserInfo"></div>
         </div>
     </div>
@@ -202,7 +206,7 @@
                 <span id="topbarTitle">Home</span>
                 <select id="serverSelect" onchange="switchServer()" style="background:#112e2e; color:#4dd9c0; border:1px solid #1e4a4a; border-radius:6px; padding:4px 8px; font-size:13px;"></select>
             </div>
-            <span style="font-size:12px; color:#4dd9c0;"><span style="color:#4ade80;">&#9679;</span> Server Online</span>
+            <span style="font-size:12px; color:#4dd9c0;"><span id="serverStatusDot" style="color:#4ade80;">&#9679;</span> <span id="serverStatusText">Server Online</span></span>
         </div>
         <div id="content">
 
@@ -226,6 +230,10 @@
             <div class="panel" id="panel-voice">
                 <button class="btn" id="voiceBtnAdmin" onclick="connectVoiceAdmin()">Join Voice</button>
                 <div id="voiceStatusAdmin" style="margin-top:14px; color:#4dd9c0; font-size:13px;"></div>
+                <div style="margin-top:14px;">
+                    <p style="font-size:12px; color:#a0c4c0; margin-bottom:6px;">PTT Button: <span id="pttLabelAdmin">Middle Mouse</span></p>
+                    <button class="btn small" onclick="startPTTListen('pttLabelAdmin')">Set PTT Button</button>
+                </div>
             </div>
 
             <!-- CONTROLS -->
@@ -453,6 +461,8 @@ function switchServer() {
     currentServerName = opt ? opt.text : currentServerId;
     document.getElementById('statServer').textContent = currentServerName;
     document.getElementById('statPlayers').textContent = '';
+    document.getElementById('serverStatusDot').style.color = '#4ade80';
+    document.getElementById('serverStatusText').textContent = 'Server Online';
     document.getElementById('playerList').textContent = 'Loading...';
     document.getElementById('controlStatus').textContent = '';
     document.getElementById('activityLog').innerHTML = '';
@@ -508,8 +518,11 @@ async function refreshPlayersWithLog(silent = false) {
         await loadActivityLog();
         await loadStorageSlots();
         await loadPlayerStorageSlots();
-    } catch { document.getElementById('statPlayers').textContent = 'â€"'; }
-}
+    } catch {
+        document.getElementById('statPlayers').textContent = '—';
+        document.getElementById('serverStatusDot').style.color = '#f87171';
+        document.getElementById('serverStatusText').textContent = 'Server Offline';
+    }
 
 async function addActivityLog(message, color = '#a0c4c0', serverId = currentServerId) {
     const log = document.getElementById('activityLog');
@@ -844,7 +857,7 @@ async function storeDino() {
 
 async function loadDino(slotName) {
     const status = document.getElementById('storageStatus');
-    if (!confirm(`Load dino from slot "${slotName}"? You must be off the server for this to work.`)) return;
+    if (!confirm(`Load dino from slot "${slotName}"? You must be on the server for this to work.`)) return;
     status.textContent = 'Loading dino...'; status.style.color = '#4dd9c0';
     try {
         const res = await fetch(`${API}/dino-storage/load`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }) });
@@ -916,7 +929,7 @@ async function storeDinoPlayer() {
 
 async function loadDinoPlayer(slotName) {
     const status = document.getElementById('playerStorageStatus');
-    if (!confirm(`Load dino from slot "${slotName}"? You must be off the server.`)) return;
+    if (!confirm(`Load dino from slot "${slotName}"? You must be on the server for this to work.`)) return;
     status.textContent = 'Loading dino...'; status.style.color = '#4dd9c0';
     try {
         const res = await fetch(`${API}/dino-storage/load`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId, slotName }) });
@@ -1522,6 +1535,69 @@ async function pollMapPositions() {
         if (playerMapState) { playerMapState.playerPositions = converted; drawMap(playerMapState); }
     } catch {}
 }
+
+let pttListening = false;
+
+function updatePTTLabels(config) {
+    const label = config.mouseButton !== null && config.mouseButton !== undefined
+        ? `Mouse Button ${config.mouseButton}`
+        : `Key ${config.keyCode}`;
+    const adminLabel = document.getElementById('pttLabelAdmin');
+    const playerLabel = document.getElementById('pttLabelPlayer');
+    if (adminLabel) adminLabel.textContent = label;
+    if (playerLabel) playerLabel.textContent = label;
+}
+
+function startPTTListen(labelId) {
+    if (pttListening) return;
+    pttListening = true;
+    const label = document.getElementById(labelId);
+    const original = label.textContent;
+    label.textContent = 'Press any key or button...';
+
+    const onMouse = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const config = { mouseButton: e.button, keyCode: null };
+        window.electronAPI.setPTTButton(config);
+        const btnName = e.button === 0 ? 'Left Mouse' : e.button === 1 ? 'Middle Mouse' : e.button === 2 ? 'Right Mouse' : `Mouse Button ${e.button}`;
+        updatePTTLabels({ mouseButton: e.button, keyCode: null });
+        cleanup();
+    };
+
+    const onKey = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const config = { mouseButton: null, keyCode: e.keyCode };
+        window.electronAPI.setPTTButton(config);
+        updatePTTLabels({ mouseButton: null, keyCode: e.keyCode });
+        cleanup();
+    };
+
+    const cleanup = () => {
+        pttListening = false;
+        window.removeEventListener('mousedown', onMouse, true);
+        window.removeEventListener('keydown', onKey, true);
+    };
+
+    window.addEventListener('mousedown', onMouse, true);
+    window.addEventListener('keydown', onKey, true);
+
+    setTimeout(() => {
+        if (pttListening) {
+            label.textContent = original;
+            cleanup();
+        }
+    }, 10000);
+}
+
+// Load saved PTT config on startup
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.electronAPI && window.electronAPI.getPTTButton) {
+        const config = window.electronAPI.getPTTButton();
+        if (config) updatePTTLabels(config);
+    }
+});
 
 async function grantPrime() {
     const name = document.getElementById('primePlayerName').value.trim();

@@ -6,4 +6,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onPTTUp: (cb) => { ipcRenderer.removeAllListeners('ptt-up'); ipcRenderer.on('ptt-up', cb); },
     onUpdateAvailable: (cb) => ipcRenderer.on('update-available', cb),
     onUpdateDownloaded: (cb) => ipcRenderer.on('update-downloaded', cb),
+    setPTTButton: (config) => ipcRenderer.send('set-ptt-button', config),
+    getPTTButton: () => ipcRenderer.sendSync('get-ptt-button'),
+});
 });

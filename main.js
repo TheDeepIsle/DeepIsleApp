@@ -32,13 +32,31 @@ function createWindow() {
     autoUpdater.on('update-downloaded', () => {
         mainWindow.webContents.send('update-downloaded');
     });
+    let pttMouseButton = 3;
+    let pttKeyCode = null;
+
+    ipcMain.on('set-ptt-button', (_event, config) => {
+        pttMouseButton = config.mouseButton !== undefined ? config.mouseButton : null;
+        pttKeyCode = config.keyCode !== undefined ? config.keyCode : null;
+    });
+
+    ipcMain.on('get-ptt-button', (event) => {
+        event.returnValue = { mouseButton: pttMouseButton, keyCode: pttKeyCode };
+    });
+
     uIOhook.on('mousedown', (e) => {
-    if (e.button === 3) mainWindow.webContents.send('ptt-down');
-});
+        if (pttMouseButton !== null && e.button === pttMouseButton) mainWindow.webContents.send('ptt-down');
+    });
     uIOhook.on('mouseup', (e) => {
-    if (e.button === 3) mainWindow.webContents.send('ptt-up');
-});
-uIOhook.start();
+        if (pttMouseButton !== null && e.button === pttMouseButton) mainWindow.webContents.send('ptt-up');
+    });
+    uIOhook.on('keydown', (e) => {
+        if (pttKeyCode !== null && e.keycode === pttKeyCode) mainWindow.webContents.send('ptt-down');
+    });
+    uIOhook.on('keyup', (e) => {
+        if (pttKeyCode !== null && e.keycode === pttKeyCode) mainWindow.webContents.send('ptt-up');
+    });
+    uIOhook.start();
 }
 
 ipcMain.handle('open-steam-auth', async (_event, authUrl) => {
