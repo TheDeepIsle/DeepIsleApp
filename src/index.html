@@ -551,7 +551,7 @@ async function loadActivityLog() {
         const log = document.getElementById('activityLog');
         if (!log) return;
         log.innerHTML = '';
-        for (const entry of data.log || []) {
+        for (const entry of data || []) {
             const line = document.createElement('div');
             line.style.color = entry.color || '#a0c4c0';
             line.style.marginBottom = '4px';
@@ -1555,6 +1555,7 @@ function startPTTListen(labelId) {
     const label = document.getElementById(labelId);
     const original = label.textContent;
     label.textContent = 'Press any key or button...';
+    document.activeElement.blur();
 
     const onLearned = (config) => {
         updatePTTLabels(config);
