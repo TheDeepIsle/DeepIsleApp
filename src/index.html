@@ -506,6 +506,8 @@ async function refreshPlayersWithLog(silent = false) {
         }
         lastPlayerList = { ...players };
         await loadActivityLog();
+        await loadStorageSlots();
+        await loadPlayerStorageSlots();
     } catch { document.getElementById('statPlayers').textContent = 'â€"'; }
 }
 
