@@ -744,7 +744,7 @@ async function connectVoice(statusElId, btnElId) {
         localAudioTrack = await buildAudioTrack();
         await room.localParticipant.publishTrack(localAudioTrack);
         localAudioTrack.mute();
-        status.textContent = ` Connected  Hold middle mouse to talk`;
+        status.textContent = ` Connected `;
         if (btn) btn.style.display = 'none';
         fetch(`${API}/enforcer/voice-connected`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ steamId: currentSteamId, serverId: currentServerId }) }).catch(() => {});
         reshardTimer = setInterval(() => checkReshard(statusElId), 5000);

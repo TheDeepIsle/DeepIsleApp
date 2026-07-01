@@ -23,6 +23,10 @@ function savePTTConfig(config) {
     } catch {}
 }
 
+ipcMain.handle('get-key-name-map', () => {
+    return Object.fromEntries(Object.entries(UiohookKey).map(([name, code]) => [code, name]));
+});
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 775,
@@ -50,13 +54,16 @@ function createWindow() {
     autoUpdater.on('update-downloaded', () => {
         mainWindow.webContents.send('update-downloaded');
     });
-    let pttMouseButton = 3;
-    let pttKeyCode = null;
+
+    const savedPTT = loadPTTConfig();
+    let pttMouseButton = savedPTT.mouseButton;
+    let pttKeyCode = savedPTT.keyCode;
     let learningPTT = false;
     let learnWindow = null;
     ipcMain.on('set-ptt-button', (_event, config) => {
         pttMouseButton = config.mouseButton !== undefined ? config.mouseButton : null;
         pttKeyCode = config.keyCode !== undefined ? config.keyCode : null;
+        savePTTConfig({ mouseButton: pttMouseButton, keyCode: pttKeyCode });
     });
     ipcMain.on('get-ptt-button', (event) => {
         event.returnValue = { mouseButton: pttMouseButton, keyCode: pttKeyCode };
@@ -70,6 +77,7 @@ function createWindow() {
             pttMouseButton = e.button;
             pttKeyCode = null;
             learningPTT = false;
+            savePTTConfig({ mouseButton: pttMouseButton, keyCode: pttKeyCode });
             learnWindow.send('ptt-learned', { mouseButton: e.button, keyCode: null });
             return;
         }
@@ -83,6 +91,7 @@ function createWindow() {
             pttKeyCode = e.keycode;
             pttMouseButton = null;
             learningPTT = false;
+            savePTTConfig({ mouseButton: pttMouseButton, keyCode: pttKeyCode });
             learnWindow.send('ptt-learned', { mouseButton: null, keyCode: e.keycode });
             return;
         }
