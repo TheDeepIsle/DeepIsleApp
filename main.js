@@ -1,5 +1,4 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-const { uIOhook } = require('uiohook-napi');
 const { uIOhook, UiohookKey } = require('uiohook-napi');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
