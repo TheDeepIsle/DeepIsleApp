@@ -671,22 +671,6 @@ async function loadToggleStates() {
     } catch {}
 }
 
-async function loadActivityLog() {
-    try {
-        const res = await fetch(`${API}/activity-log?serverId=${currentServerId}`);
-        const entries = await res.json();
-        const log = document.getElementById('activityLog');
-        log.innerHTML = '';
-        for (const entry of entries) {
-            const line = document.createElement('div');
-            line.style.color = entry.color;
-            line.style.marginBottom = '4px';
-            line.textContent = `[${entry.time}] ${entry.message}`;
-            log.appendChild(line);
-        }
-    } catch {}
-}
-
 //  Voice System 
 const LivekitClient = window.LivekitClient;
 let room = null;
@@ -1554,7 +1538,6 @@ function startPTTListen(labelId) {
     const label = document.getElementById(labelId);
     const original = label.textContent;
     label.textContent = 'Press any key or button...';
-
     const onMouse = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1564,7 +1547,6 @@ function startPTTListen(labelId) {
         updatePTTLabels({ mouseButton: e.button, keyCode: null });
         cleanup();
     };
-
     const onKey = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1573,16 +1555,13 @@ function startPTTListen(labelId) {
         updatePTTLabels({ mouseButton: null, keyCode: e.keyCode });
         cleanup();
     };
-
     const cleanup = () => {
         pttListening = false;
         window.removeEventListener('mousedown', onMouse, true);
         window.removeEventListener('keydown', onKey, true);
     };
-
     window.addEventListener('mousedown', onMouse, true);
     window.addEventListener('keydown', onKey, true);
-
     setTimeout(() => {
         if (pttListening) {
             label.textContent = original;
@@ -1590,14 +1569,6 @@ function startPTTListen(labelId) {
         }
     }, 10000);
 }
-window.addEventListener('DOMContentLoaded', () => {
-    if (window.electronAPI && window.electronAPI.getPTTButton) {
-        const config = window.electronAPI.getPTTButton();
-        if (config) updatePTTLabels(config);
-    }
-});
-
-// Load saved PTT config on startup
 window.addEventListener('DOMContentLoaded', () => {
     if (window.electronAPI && window.electronAPI.getPTTButton) {
         const config = window.electronAPI.getPTTButton();
