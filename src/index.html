@@ -505,7 +505,8 @@ async function refreshPlayersWithLog(silent = false) {
             // Join/leave logging handled by backend
         }
         lastPlayerList = { ...players };
-    } catch { document.getElementById('statPlayers').textContent = '—'; }
+        await loadActivityLog();
+    } catch { document.getElementById('statPlayers').textContent = 'â€"'; }
 }
 
 async function addActivityLog(message, color = '#a0c4c0', serverId = currentServerId) {
@@ -525,6 +526,23 @@ async function addActivityLog(message, color = '#a0c4c0', serverId = currentServ
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ entry, serverId }),
     }).catch(() => {});
+}
+
+async function loadActivityLog() {
+    try {
+        const res = await fetch(`${API}/activity-log?serverId=${currentServerId}`);
+        const data = await res.json();
+        const log = document.getElementById('activityLog');
+        if (!log) return;
+        log.innerHTML = '';
+        for (const entry of data.log || []) {
+            const line = document.createElement('div');
+            line.style.color = entry.color || '#a0c4c0';
+            line.style.marginBottom = '4px';
+            line.textContent = `[${entry.time}] ${entry.message}`;
+            log.appendChild(line);
+        }
+    } catch {}
 }
 
 //  Player List 
