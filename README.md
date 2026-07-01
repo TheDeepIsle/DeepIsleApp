@@ -3,7 +3,7 @@
 ## Download
 Grab the latest installer from the [Releases page](https://github.com/TheDeepIsle/DeepIsleApp/releases/latest) — download `DeepIsleAppSetup.exe` and run it. The app will auto-update itself on future releases, so you only need to do this once.
 
-### Requirements
+## Requirements
 - Windows 10/11
 - An active connection to The Deep Isle or The Earl (no manual server setup needed — just log in)
 
