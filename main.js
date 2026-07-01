@@ -2,8 +2,26 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const { uIOhook, UiohookKey } = require('uiohook-napi');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
+const fs = require('fs');
 
 let mainWindow;
+
+const pttConfigPath = path.join(app.getPath('userData'), 'ptt-config.json');
+
+function loadPTTConfig() {
+    try {
+        const raw = fs.readFileSync(pttConfigPath, 'utf-8');
+        return JSON.parse(raw);
+    } catch {
+        return { mouseButton: 3, keyCode: null };
+    }
+}
+
+function savePTTConfig(config) {
+    try {
+        fs.writeFileSync(pttConfigPath, JSON.stringify(config));
+    } catch {}
+}
 
 function createWindow() {
     mainWindow = new BrowserWindow({
@@ -33,57 +51,46 @@ function createWindow() {
         mainWindow.webContents.send('update-downloaded');
     });
     let pttMouseButton = 3;
-let pttKeyCode = null;
-let learningPTT = false;
-let learnWindow = null;
-
-ipcMain.handle('get-key-name-map', () => {
-    return Object.fromEntries(Object.entries(UiohookKey).map(([name, code]) => [code, name]));
-});
-
-ipcMain.on('set-ptt-button', (_event, config) => {
-    pttMouseButton = config.mouseButton !== undefined ? config.mouseButton : null;
-    pttKeyCode = config.keyCode !== undefined ? config.keyCode : null;
-});
-
-ipcMain.on('get-ptt-button', (event) => {
-    event.returnValue = { mouseButton: pttMouseButton, keyCode: pttKeyCode };
-});
-
-ipcMain.on('start-ptt-learn', (event) => {
-    learningPTT = true;
-    learnWindow = event.sender;
-});
-
-uIOhook.on('mousedown', (e) => {
-    if (learningPTT) {
-        pttMouseButton = e.button;
-        pttKeyCode = null;
-        learningPTT = false;
-        learnWindow.send('ptt-learned', { mouseButton: e.button, keyCode: null });
-        return;
-    }
-    if (pttMouseButton !== null && e.button === pttMouseButton) mainWindow.webContents.send('ptt-down');
-});
-
-uIOhook.on('mouseup', (e) => {
-    if (pttMouseButton !== null && e.button === pttMouseButton) mainWindow.webContents.send('ptt-up');
-});
-
-uIOhook.on('keydown', (e) => {
-    if (learningPTT) {
-        pttKeyCode = e.keycode;
-        pttMouseButton = null;
-        learningPTT = false;
-        learnWindow.send('ptt-learned', { mouseButton: null, keyCode: e.keycode });
-        return;
-    }
-    if (pttKeyCode !== null && e.keycode === pttKeyCode) mainWindow.webContents.send('ptt-down');
-});
-
-uIOhook.on('keyup', (e) => {
-    if (pttKeyCode !== null && e.keycode === pttKeyCode) mainWindow.webContents.send('ptt-up');
-});
+    let pttKeyCode = null;
+    let learningPTT = false;
+    let learnWindow = null;
+    ipcMain.on('set-ptt-button', (_event, config) => {
+        pttMouseButton = config.mouseButton !== undefined ? config.mouseButton : null;
+        pttKeyCode = config.keyCode !== undefined ? config.keyCode : null;
+    });
+    ipcMain.on('get-ptt-button', (event) => {
+        event.returnValue = { mouseButton: pttMouseButton, keyCode: pttKeyCode };
+    });
+    ipcMain.on('start-ptt-learn', (event) => {
+        learningPTT = true;
+        learnWindow = event.sender;
+    });
+    uIOhook.on('mousedown', (e) => {
+        if (learningPTT) {
+            pttMouseButton = e.button;
+            pttKeyCode = null;
+            learningPTT = false;
+            learnWindow.send('ptt-learned', { mouseButton: e.button, keyCode: null });
+            return;
+        }
+        if (pttMouseButton !== null && e.button === pttMouseButton) mainWindow.webContents.send('ptt-down');
+    });
+    uIOhook.on('mouseup', (e) => {
+        if (pttMouseButton !== null && e.button === pttMouseButton) mainWindow.webContents.send('ptt-up');
+    });
+    uIOhook.on('keydown', (e) => {
+        if (learningPTT) {
+            pttKeyCode = e.keycode;
+            pttMouseButton = null;
+            learningPTT = false;
+            learnWindow.send('ptt-learned', { mouseButton: null, keyCode: e.keycode });
+            return;
+        }
+        if (pttKeyCode !== null && e.keycode === pttKeyCode) mainWindow.webContents.send('ptt-down');
+    });
+    uIOhook.on('keyup', (e) => {
+        if (pttKeyCode !== null && e.keycode === pttKeyCode) mainWindow.webContents.send('ptt-up');
+    });
     uIOhook.start();
 }
 
