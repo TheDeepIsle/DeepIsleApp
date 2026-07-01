@@ -1590,6 +1590,12 @@ function startPTTListen(labelId) {
         }
     }, 10000);
 }
+window.addEventListener('DOMContentLoaded', () => {
+    if (window.electronAPI && window.electronAPI.getPTTButton) {
+        const config = window.electronAPI.getPTTButton();
+        if (config) updatePTTLabels(config);
+    }
+});
 
 // Load saved PTT config on startup
 window.addEventListener('DOMContentLoaded', () => {
