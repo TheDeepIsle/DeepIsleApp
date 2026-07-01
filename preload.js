@@ -9,4 +9,3 @@ contextBridge.exposeInMainWorld('electronAPI', {
     setPTTButton: (config) => ipcRenderer.send('set-ptt-button', config),
     getPTTButton: () => ipcRenderer.sendSync('get-ptt-button'),
 });
-});
