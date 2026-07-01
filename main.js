@@ -37,6 +37,10 @@ let pttKeyCode = null;
 let learningPTT = false;
 let learnWindow = null;
 
+ipcMain.handle('get-key-name-map', () => {
+    return Object.fromEntries(Object.entries(UiohookKey).map(([name, code]) => [code, name]));
+});
+
 ipcMain.on('set-ptt-button', (_event, config) => {
     pttMouseButton = config.mouseButton !== undefined ? config.mouseButton : null;
     pttKeyCode = config.keyCode !== undefined ? config.keyCode : null;

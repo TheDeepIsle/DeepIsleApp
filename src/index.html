@@ -1523,7 +1523,8 @@ async function pollMapPositions() {
 
 let pttListening = false;
 
-const KEY_NAMES = window.electronAPI.getKeyNameMap(); // { 57: 'Space', 30: 'A', ... } for every key uIOhook knows
+let KEY_NAMES = {};
+window.electronAPI.getKeyNameMap().then(map => { KEY_NAMES = map; });
 
 const MOUSE_BUTTON_NAMES = { 1: 'Left Mouse', 2: 'Right Mouse', 3: 'Middle Mouse (Scroll Click)', 4: 'Mouse 4', 5: 'Mouse 5' };
 
