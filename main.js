@@ -33,16 +33,53 @@ function createWindow() {
         mainWindow.webContents.send('update-downloaded');
     });
     let pttMouseButton = 3;
-    let pttKeyCode = null;
-    let learningPTT = false;
-    let learnWindow = null;
-    ipcMain.on('set-ptt-button', (_event, config) => { ... });
-    ipcMain.on('get-ptt-button', (event) => { ... });
-    ipcMain.on('start-ptt-learn', (event) => { ... });
-    uIOhook.on('mousedown', (e) => { ... });
-    uIOhook.on('mouseup', (e) => { ... });
-    uIOhook.on('keydown', (e) => { ... });
-    uIOhook.on('keyup', (e) => { ... });
+let pttKeyCode = null;
+let learningPTT = false;
+let learnWindow = null;
+
+ipcMain.on('set-ptt-button', (_event, config) => {
+    pttMouseButton = config.mouseButton !== undefined ? config.mouseButton : null;
+    pttKeyCode = config.keyCode !== undefined ? config.keyCode : null;
+});
+
+ipcMain.on('get-ptt-button', (event) => {
+    event.returnValue = { mouseButton: pttMouseButton, keyCode: pttKeyCode };
+});
+
+ipcMain.on('start-ptt-learn', (event) => {
+    learningPTT = true;
+    learnWindow = event.sender;
+});
+
+uIOhook.on('mousedown', (e) => {
+    if (learningPTT) {
+        pttMouseButton = e.button;
+        pttKeyCode = null;
+        learningPTT = false;
+        learnWindow.send('ptt-learned', { mouseButton: e.button, keyCode: null });
+        return;
+    }
+    if (pttMouseButton !== null && e.button === pttMouseButton) mainWindow.webContents.send('ptt-down');
+});
+
+uIOhook.on('mouseup', (e) => {
+    if (pttMouseButton !== null && e.button === pttMouseButton) mainWindow.webContents.send('ptt-up');
+});
+
+uIOhook.on('keydown', (e) => {
+    if (learningPTT) {
+        pttKeyCode = e.keycode;
+        pttMouseButton = null;
+        learningPTT = false;
+        learnWindow.send('ptt-learned', { mouseButton: null, keyCode: e.keycode });
+        return;
+    }
+    if (pttKeyCode !== null && e.keycode === pttKeyCode) mainWindow.webContents.send('ptt-down');
+});
+
+uIOhook.on('keyup', (e) => {
+    if (pttKeyCode !== null && e.keycode === pttKeyCode) mainWindow.webContents.send('ptt-up');
+});
     uIOhook.start();
 }
 
